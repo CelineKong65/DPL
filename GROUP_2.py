@@ -20,7 +20,7 @@ class Member:
         return f"{self.member_id}\n{self.full_name}\n{self.email}\n{self.password}\n{self.age}\n{self.gender}\n{self.contact}\n{self.status}"
 
 class Admin:
-    def __init__(self, name="", password="", contact="", position="admin"):
+    def __init__(self, name="", password="", contact="", position="admin", status="Active"):
         allowed_positions = ["admin", "superadmin"]
         if position not in allowed_positions:
             raise ValueError(f"Invalid position: {position}. Must be 'admin' or 'superadmin'.")
@@ -29,9 +29,10 @@ class Admin:
         self.password = password
         self.contact = contact
         self.position = position
+        self.status = status
 
     def __str__(self):
-        return f"{self.name}\n{self.password}\n{self.contact}\n{self.position}"
+        return f"{self.name}\n{self.password}\n{self.contact}\n{self.position}\n{self.status}"
 
 members = []
 logged_in_member = ""
@@ -359,7 +360,7 @@ def update_member(updated_member):
                     str(updated_member.age),
                     updated_member.gender,
                     updated_member.contact,
-                    updated_member.status
+
                 ]
                 updated_members.append("\n".join(new_member_data))
             else:
@@ -648,12 +649,19 @@ def admin_login():
         with open(ADMINS_FILE, "r", encoding='utf-8') as f:
             lines = [line.strip() for line in f if line.strip() != ''] 
 
-        for i in range(0, len(lines), 4):  
+        for i in range(0, len(lines), 5):  
             stored_name = lines[i]
             stored_password = lines[i + 1]
             stored_position = lines[i + 3]
+            status = lines[i + 4]
 
             if name == stored_name:
+                if to_lower_case(status) != "active":
+                    print("Your account is inactive. Please contact superadmin.")
+                    input("\nPress [ENTER] to return to login menu.")
+                    clear_screen()
+                    return False
+                
                 attempts = 0
                 while attempts < 3:
                     if password == stored_password:
@@ -663,7 +671,8 @@ def admin_login():
                             name=lines[i],
                             password=lines[i + 1],
                             contact=lines[i + 2],
-                            position=lines[i + 3]
+                            position=lines[i + 3],
+                            status=lines[i + 4]
                         )
                         input("\nPress [ENTER] to continue.")
                         clear_screen()
@@ -678,11 +687,11 @@ def admin_login():
                 input("\nPress [ENTER] to return to login menu.")
                 clear_screen()
                 return False
-                    
-        print("Name not found.\n")
-        input("\nPress [ENTER] to continue.")
-        clear_screen()
-        return False
+
+            print("Name not found.\n")
+            input("\nPress [ENTER] to continue.")
+            clear_screen()
+            return False
 
     except FileNotFoundError:
         print("Error: Admins file not found!")
