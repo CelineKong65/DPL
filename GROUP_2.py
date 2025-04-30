@@ -697,6 +697,168 @@ def admin_login():
         print("Error: Admins file not found!")
         return False
     
+def update_admin(updated_admin):
+    admins = []
+
+    with open(ADMINS_FILE, "r", encoding="utf-8") as file:
+        lines = [line.strip() for line in file if line.strip() != ""]
+
+    for i in range(0, len(lines), 4):
+        name = lines[i]
+        password = lines[i+1]
+        contact = lines[i+2]
+        position = lines[i+3]
+
+        if name == updated_admin.name:
+            admins.append(str(updated_admin))
+        else:
+            admins.append(f"{name}\n{password}\n{contact}\n{position}")
+
+    with open(ADMINS_FILE, "w", encoding="utf-8") as file:
+        file.write("\n\n".join(admins))
+
+    
+def admin_profile():
+    global logged_in_admin
+
+    clear_screen()
+
+    while True:
+        print("------------------------------------------------------------------")
+        print("|                         YOUR PROFILE                           |")
+        print("------------------------------------------------------------------")
+        print(f"| 1. Name              : {logged_in_admin.name:<40}|")
+        print(f"| 2. Password          : {logged_in_admin.password:<40}|")
+        print(f"| 3. Contact Number    : {logged_in_admin.contact:<40}|")
+        print(f"| 4. Position          : {logged_in_admin.position:<40}|")
+        print("------------------------------------------------------------------")
+
+        choice = input("\nDo you want to edit your profile? (Y/N) : ")
+
+        if choice == "Y" or choice == "y" or choice == "yes":
+            edit_admin_profile()
+        elif choice == "N" or choice == "n" or choice == "no":
+            input("Press [Enter] to return to the admin menu.")
+            clear_screen()
+            return admin_menu()
+        else:
+            input("\nInvalid choice. Press [ENTER] to try again.")
+            clear_screen()
+
+def edit_admin_profile():
+    global logged_in_admin
+
+    while True:
+        clear_screen()
+        print("------------------------------------------------------------------")
+        print("|                       EDIT YOUR PROFILE                        |")
+        print("------------------------------------------------------------------")
+        print("| 1. Name                                                        |")
+        print("| 2. Password                                                    |")
+        print("| 3. Contact Number                                              |")
+        print("| 4. Position (Not Editable)                                     |")
+        print("| 5. Return to Profile Menu                                      |")
+        print("------------------------------------------------------------------")
+
+        choice = input("\nSelect the number you want to edit (1-5): ")
+
+        if choice == "1":
+            logged_in_admin.name = input("Enter new Full Name: ")
+            update_admin(logged_in_admin)
+            print("Full Name updated successfully!")
+            input("Press [ENTER] to continue.")
+
+        elif choice == "2":
+            while True:
+                logged_in_admin.password = ""
+                logged_in_admin.password = input("Enter your new password (example: Xuanting123): ")
+
+                if len(logged_in_admin.password) < 8:
+                    print("Password must be at least 8 characters!")
+                    continue
+
+                upper = False
+                lower = False
+                digit = False
+
+                for char in logged_in_admin.password:
+                    if 'A' <= char <= 'Z':
+                        upper = True
+                    elif 'a' <= char <= 'z': 
+                        lower = True
+                    elif '0' <= char <= '9': 
+                        digit = True
+
+                if not upper:
+                    print("Password must contain at least one uppercase letter!")
+                    continue
+                if not lower:
+                    print("Password must contain at least one lowercase letter!")
+                    continue
+                if not digit:
+                    print("Password must contain at least one digit!")
+                    continue
+                
+                confirm_password = input("Confirm your password: ")
+                if confirm_password != logged_in_admin.password:
+                    print("Passwords do not match!")
+                    continue
+            
+                update_admin(logged_in_admin)
+                print("Password updated successfully!")
+                input("Press [ENTER] to continue.")
+                break
+
+        elif choice == "3":
+            while True:
+                logged_in_admin.contact  = input("Enter your contact number (example: 012-34567890): ")
+
+                if len(logged_in_admin.contact) < 4 or logged_in_admin.contact[3] != '-':
+                    print("Format must be like 012-34567890 with a dash at the 4th position!")
+                    continue
+
+                part1 = ""
+                part2 = ""
+                for i in range(len(logged_in_admin.contact)):
+                    if i < 3:
+                        part1 += logged_in_admin.contact[i]
+                    elif i > 3:
+                        part2 += logged_in_admin.contact[i]
+
+
+                if not (part1[0] == '0' and part1[1] == '1'):
+                    print("Phone number must start with '01'!")
+                    continue
+
+                combined = part1 + part2
+                only_digits = True
+                for c in combined:
+                    if not ('0' <= c <= '9'):
+                        only_digits = False
+                        break
+                if not only_digits:
+                    print("Phone number cannot contain symbols or space!")
+                    continue
+
+                if len(combined) != 10 and len(combined) != 11:
+                    print("Phone number must be 10 or 11 digits!")
+                    continue
+    
+                update_admin(logged_in_admin)
+                print("Contact Number updated successfully!")
+                input("Press [ENTER] to continue.")
+                break
+        elif choice == "4":
+            input("\nYour position cannot be edited. Press [ENTER] to continue.")
+        
+        elif choice == "5":
+            input("\nPress [ENTER] to return to your profile.")
+            clear_screen()
+            return admin_profile()
+        else:
+            input("\nInvalid choice. Press [ENTER] to try again.")
+            clear_screen()
+    
 def admin_menu():
     global logged_in_member 
 
@@ -726,7 +888,7 @@ def admin_menu():
         elif choice == '5':
             return
         elif choice == '6':
-            print("admin_profile()")
+            admin_profile()
         elif choice == '7':
             input("\nPress [ENTER] to logout.")
             clear_screen()
