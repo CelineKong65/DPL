@@ -2,6 +2,7 @@ import os
 
 MEMBERS_FILE = "member.txt"
 MEMBERS_ID_FILE = "member_id.txt"
+ADMINS_FILE = "admin.txt"
 PRODUCT_FILE = "product.txt"
 
 class Member:
@@ -18,6 +19,19 @@ class Member:
     def __str__(self):
         return f"{self.member_id}\n{self.full_name}\n{self.email}\n{self.password}\n{self.age}\n{self.gender}\n{self.contact}\n{self.status}"
 
+class Admin:
+    def __init__(self, name="", password="", contact="", position="admin"):
+        allowed_positions = ["admin", "superadmin"]
+        if position not in allowed_positions:
+            raise ValueError(f"Invalid position: {position}. Must be 'admin' or 'superadmin'.")
+        
+        self.name = name
+        self.password = password
+        self.contact = contact
+        self.position = position
+
+    def __str__(self):
+        return f"{self.name}\n{self.password}\n{self.contact}\n{self.position}"
 
 members = []
 logged_in_member = ""
@@ -345,14 +359,101 @@ def login_menu():
         elif choice == '2':
             login()
         elif choice == '3':
-            print("\nAdmin login\n")
+            admin_login()
         elif choice == '4':
             print("\nThank you for visiting Yesmolar Bakery!\n")
             exit()
         else:
             input("\nInvalid choice. Press [ENTER] to try again.")
             clear_screen()
+
+def admin_login():
+    global logged_in_admin
+
+    name = input("\nEnter your name :").strip()
+    password = input("Enter your password :").strip()
+
+    try:
+        with open(ADMINS_FILE, "r", encoding='utf-8') as f:
+            lines = [line.strip() for line in f if line.strip() != ''] 
+
+        for i in range(0, len(lines), 4):  
+            stored_name = lines[i]
+            stored_password = lines[i + 1]
+            stored_position = lines[i + 3]
+
+            if name == stored_name:
+                attempts = 0
+                while attempts < 3:
+                    if password == stored_password:
+                        print("Logged in Successfully!")
+                        print(f"Welcome {stored_position}!\n")
+                        logged_in_admin = Admin(
+                            name=lines[i],
+                            password=lines[i + 1],
+                            contact=lines[i + 2],
+                            position=lines[i + 3]
+                        )
+                        input("\nPress [ENTER] to continue.")
+                        clear_screen()
+                        return admin_menu()
+                        
+                    else:
+                        attempts += 1
+                        print(f"Incorrect password! Attempts left: {3 - attempts}")
+                        password = input("Please enter your password again: ").strip()
+
+                print("Too many failed attempts. Login terminating.")
+                input("\nPress [ENTER] to return to login menu.")
+                clear_screen()
+                return False
+                    
+        print("Name not found.\n")
+        input("\nPress [ENTER] to continue.")
+        clear_screen()
+        return False
+
+    except FileNotFoundError:
+        print("Error: Admins file not found!")
+        return False
     
+def admin_menu():
+    global logged_in_member 
+
+    while True:
+        print("===============================================================")
+        print("                          ADMIN MENU                           ")
+        print("===============================================================")
+        print(" [1] Manage Pastry Inventory")
+        print(" [2] Manage Member List")
+        print(" [3] Manage Admin List")
+        print(" [4] Manage Feedback and Rating")
+        print(" [5] View Dashboard")
+        print(" [6] My profile")
+        print(" [7] Log Out")
+        print("===============================================================")
+
+        choice = input("Enter your choice: ")
+
+        if choice == '1':
+            return
+        elif choice == '2':
+            return
+        elif choice == '3':
+            return
+        elif choice == '4':
+            return
+        elif choice == '5':
+            return
+        elif choice == '6':
+            print("admin_profile()")
+        elif choice == '7':
+            input("\nPress [ENTER] to logout.")
+            clear_screen()
+            return login_menu()
+        else:
+            input("\nInvalid choice. Press [ENTER] to try again.")
+            clear_screen()
 
 def main_menu():
     global logged_in_member
@@ -383,7 +484,7 @@ def main_menu():
         elif choice == '3':
             print("member_profile()")
         elif choice == '4':
-            return
+            print("rating")
         elif choice == '5':
             input("\nPress [ENTER] to logout.")
             clear_screen()
