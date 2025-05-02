@@ -34,6 +34,16 @@ class Admin:
     def __str__(self):
         return f"{self.name}\n{self.password}\n{self.contact}\n{self.position}\n{self.status}"
 
+class Product:
+    def __init__(self, product_id="", name="", category="", price=0.0, stock=0, status=""):
+        self.product_id = product_id
+        self.name = name
+        self.category = category
+        self.price = price
+        self.stock = stock
+        self.status = status
+
+products = []
 members = []
 logged_in_member = ""
 logged_in_admin = ""
@@ -1043,6 +1053,235 @@ def main_menu():
             member_profile()
         elif choice == '4':
             print("rating")
+        elif choice == '5':
+            input("\nPress [ENTER] to logout.")
+            clear_screen()
+            return login_menu()
+        else:
+            input("\nInvalid choice. Press [ENTER] to try again.")
+
+#------------------------------------------------------------Member browse product function------------------------------------------------
+#---------------------------------------I only add this line for easy visual, will be removed before submitted-----------------------------
+def get_quoted_field(ss):
+    field = ""
+    ss = ss.strip()
+    if not ss:
+        return "", ""
+
+    if ss.startswith('"'):
+        ss = ss[1:]
+        try:
+            quote_end_index = ss.index('"')
+            field = ss[:quote_end_index]
+            ss = ss[quote_end_index + 1:]
+            if ss.startswith(','):
+                ss = ss[1:]
+        except ValueError:
+            field = ss
+            ss = ""
+    else:
+        split = ss.split(',', 1)
+        field = split[0]
+        ss = split[1] if len(split) > 1 else ""
+
+    return field.strip(), ss.strip()
+
+def display_product(product):
+    if product.status == "Active":
+        print("---------------------------------------------------------------")
+        print(f"Product ID: {product.product_id}")
+        print("---------------------------------------------------------------")
+        print(f"| Name     : {product.name}")
+        print(f"| Category : {product.category}")
+        print(f"| Price    : RM {product.price:.2f}")
+
+        if product.stock <= 0:
+            print("| WARNING  : SORRY! THIS PRODUCT IS CURRENTLY OUT OF STOCK!")
+        else:
+            print(f"| Stock    : {product.stock}")
+        print("---------------------------------------------------------------")
+
+def load_products():
+    global products
+    products = []
+    try:
+        with open(PRODUCT_FILE, 'r', encoding='utf-8') as file:
+            for line in file:
+                line = line.strip()
+                if not line:
+                    continue
+
+                ss = line
+                product = Product()
+
+                product.product_id, ss = get_quoted_field(ss)
+                product.name, ss = get_quoted_field(ss)
+                product.category, ss = get_quoted_field(ss)
+                price_str, ss = get_quoted_field(ss)
+                stock_str, ss = get_quoted_field(ss)
+                product.status, ss = get_quoted_field(ss)
+
+                try:
+                    product.price = float(price_str) if price_str else 0.0
+                except ValueError:
+                    print(f"Warning: Invalid price format '{price_str}'. Setting price to 0.0.")
+                    product.price = 0.0
+
+                try:
+                    product.stock = int(stock_str) if stock_str else 0
+                except ValueError:
+                    print(f"Warning: Invalid stock format '{stock_str}'. Setting stock to 0.")
+                    product.stock = 0
+
+                products.append(product)
+    except FileNotFoundError:
+        print(f"Error: Product file '{PRODUCT_FILE}' not found!")
+        return False
+    except IOError as e:
+        print(f"Error: Could not read the product file: {e}")
+        return False
+    return True
+
+def filter_products():
+    global products
+    cart = []
+
+    if not load_products():
+        print("Failed to load products.")
+        input("Press [ENTER] to return to main menu.")
+        clear_screen()
+        main_menu()
+        return
+
+    while True:
+        clear_screen()
+        print("===============================================================")
+        print("                   WELCOME TO OUR PASTRY PAN!                  ")
+        print("===============================================================")
+        print("Select a category:")
+        categories = {
+            '1': 'Bread', '2': 'Pastries', '3': 'Cakes', '4': 'Donuts',
+            '5': 'Cupcakes & Muffins', '6': 'Cookies', '7': 'Pies & Tarts',
+            '8': 'Savories & Sandwiches'
+        }
+        for key, value in categories.items():
+            print(f" [{key}] {value}")
+        print(" [9] Back to Main Menu")
+        print("===============================================================")
+
+        choice = input("Enter your choice (1-9): ")
+        if choice == '9':
+            clear_screen()
+            main_menu()
+            return
+        elif choice not in categories:
+            print("Invalid choice. Please try again.")
+            input("Press [ENTER] to continue.")
+            continue
+
+        selected_category = categories[choice]
+        while True:
+            clear_screen()
+            print(f"===== Products in Category: {selected_category} =====")
+            load_products()
+            # Only show active products in the seletcted category
+            filtered = [p for p in products if p.category.lower() == selected_category.lower() and p.status == "Active"]
+
+            if not filtered:
+                print(f"\nNo available products found in '{selected_category}' category.")
+            else:
+                for product in filtered:
+                    display_product(product)
+            print("---------------------------------------------------------------")
+
+            print("_____________________________________")
+            print("|Options:                            |")
+            print("| -> Enter Product ID to add to cart |")
+            print("| -> [C] View Cart                   |")
+            print("| -> [B] Back to Category Selection  |")
+            print("| -> [M] Back to Main Menu           |")
+            print("|____________________________________|")
+
+            selection = input("\nEnter your choice: ").upper()
+
+            if selection == 'C':
+                display_cart(cart)
+                continue
+            elif selection == 'B':
+                break
+            elif selection == 'M':
+                clear_screen()
+                main_menu()
+                return
+
+            product_id = selection
+            product = None
+            # Check all products to see if ID exists
+            for p in products:
+                if p.product_id == product_id:
+                    product = p
+                    break
+
+            if not product:
+                print(f"\nProduct with ID '{product_id}' not found.")
+                input("Press [ENTER] to continue.")
+                continue
+
+            # Check if product is inactive
+            if product.status == "Inactive":
+                print("\nThis product is currently unavailable.")
+                input("Press [ENTER] to continue.")
+                continue
+
+            if product.stock <= 0:
+                print("\nSorry, this product is out of stock!")
+                input("Press [ENTER] to continue.")
+                continue
+
+            while True:
+                try:
+                    qty = int(input(f"\nEnter quantity (available: {product.stock}): "))
+                    if qty <= 0:
+                        print("Quantity must be positive.")
+                    elif qty > product.stock:
+                        print("Not enough stock available.")
+                    else:
+                        add_to_cart(cart, product_id, qty)
+                        input("Press [ENTER] to continue.")
+                        break
+                except ValueError:
+                    print("Invalid input. Please enter a number.")
+
+def main_menu():
+    global logged_in_member
+    if not logged_in_member:
+        print("Error: No user logged in.")
+        return
+
+    while True:
+        clear_screen()
+        print(f"Welcome {logged_in_member.full_name} ! ")
+        print("===============================================================")
+        print("                            Main Menu                          ")
+        print("===============================================================")
+        print(" [1] Browse Products")
+        print(" [2] View My Cart")
+        print(" [3] My Profile")
+        print(" [4] Rate Our System")
+        print(" [5] Log Out")
+        print("===============================================================")
+
+        choice = input("Enter your choice: ")
+
+        if choice == '1':
+            filter_products()
+        elif choice == '2':
+            cart = []
+            #display_cart(cart)
+        elif choice == '3':
+            member_profile()
+        elif choice == '4':
+            return
         elif choice == '5':
             input("\nPress [ENTER] to logout.")
             clear_screen()
