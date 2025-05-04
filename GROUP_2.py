@@ -832,7 +832,7 @@ def update_admin(updated_admin, original_name):
         print("Error:", e)
 
 
-    
+#------------------------------------------------------------admin profile function------------------------------------------------
 def admin_profile():
     global logged_in_admin
 
@@ -1262,6 +1262,7 @@ def filter_products():
                 except ValueError:
                     print("Invalid input. Please enter a number.")
 
+#------------------------------------------------------------Member add to cart function------------------------------------------------
 def add_to_cart(cart, product_id, quantity):
     if not logged_in_member:
         print("Error: Cannot add to cart. No user logged in.")
@@ -1419,6 +1420,7 @@ def update_product_file():
         print(f"Error: Could not update the product file: {e}")
         return False
 
+#------------------------------------------------------------Member main menu function------------------------------------------------
 def main_menu():
     global logged_in_member
     if not logged_in_member:
@@ -1456,6 +1458,7 @@ def main_menu():
         else:
             input("\nInvalid choice. Press [ENTER] to try again.")
 
+#---------------------------------------------------------------------------Main---------------------------------------------------------------
 def main():
     global logged_in_member
     logged_in_member = None 
