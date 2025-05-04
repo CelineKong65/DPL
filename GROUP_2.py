@@ -43,6 +43,16 @@ class Product:
         self.stock = stock
         self.status = status
 
+class CartItem:
+    def __init__(self, product=None, product_id="", name="", price=0.0, quantity=0, total=0.0, status=""):
+        self.product = product if product else Product()
+        self.product_id = product_id if product_id else (product.product_id if product else "")
+        self.name = name if name else (product.name if product else "")
+        self.price = price if price else (product.price if product else 0.0)
+        self.quantity = quantity
+        self.total = total if total else (self.price * quantity)
+        self.status = status if status else (product.status if product else "")
+
 products = []
 members = []
 logged_in_member = ""
@@ -1251,6 +1261,163 @@ def filter_products():
                         break
                 except ValueError:
                     print("Invalid input. Please enter a number.")
+
+def add_to_cart(cart, product_id, quantity):
+    if not logged_in_member:
+        print("Error: Cannot add to cart. No user logged in.")
+        return
+
+    global products
+    if not products and not load_products():
+        print("Error: Could not load products.")
+        return
+
+    selected_product = None
+    for p in products:
+        if p.product_id == product_id:
+            selected_product = p
+            break
+
+    if not selected_product:
+        print(f"Error: Product with ID {product_id} not found.")
+        return
+    
+    if selected_product.status == "Inactive":
+        print("Error: This product is currently unavailable.")
+        return
+    if quantity <= 0:
+        print("Error: Quantity must be positive.")
+        return
+
+    if selected_product.stock < quantity:
+        print(f"Error: Not enough stock for {selected_product.name}. Available: {selected_product.stock}")
+        return
+
+    if not load_cart(cart):
+        print("Error: Could not load current cart.")
+        return
+
+    found = False
+    for item in cart:
+        if (item.product_id == product_id or 
+            (item.product and item.product.product_id == product_id)):
+            if selected_product.stock < item.quantity + quantity:
+                print(f"Error: Adding {quantity} would exceed stock.")
+                return
+            item.quantity += quantity
+            item.price = selected_product.price
+            item.total = item.quantity * item.price
+            found = True
+            break
+
+    if not found:
+        cart.append(CartItem(
+            product=selected_product,
+            product_id=selected_product.product_id,
+            name=selected_product.name,
+            price=selected_product.price,
+            quantity=quantity,
+            status=selected_product.status
+        ))
+
+    selected_product.stock -= quantity
+
+    if save_cart(cart) and update_product_file():
+        print(f"\nSuccessfully added {quantity} x {selected_product.name} to cart!")
+    else:
+        selected_product.stock += quantity
+        print("\nError: Could not save changes.")
+
+def get_cart_filename(member_id):
+    """Returns the full path to the cart file for a given member ID"""
+    return os.path.join(f"{member_id}_cart.txt")
+
+def load_cart(cart):
+    if not logged_in_member:
+        print("Error: Cannot load cart. No user logged in.")
+        return False
+
+    cart_file = get_cart_filename(logged_in_member.member_id)
+    cart.clear()
+    
+    if not products and not load_products():
+        print("Error: Failed to load products.")
+        return False
+
+    try:
+        if not os.path.exists(cart_file) or os.path.getsize(cart_file) == 0:
+            return True
+
+        with open(cart_file, 'r', encoding='utf-8') as file:
+            for line in file:
+                line = line.strip()
+                if not line:
+                    continue
+
+                parts = line.split(',')
+                if len(parts) != 6:
+                    continue
+
+                item = CartItem()
+                item.product_id = parts[1].strip()
+                item.name = parts[2].strip()
+                
+                try:
+                    item.price = float(parts[3].strip())
+                    item.quantity = int(parts[4].strip())
+                    item.total = float(parts[5].strip())
+                except ValueError:
+                    continue
+
+                for p in products:
+                    if p.product_id == item.product_id:
+                        item.product = p
+                        break
+
+                cart.append(item)
+    except IOError as e:
+        print(f"Error reading cart file: {e}")
+        return False
+    return True
+
+def save_cart(cart):
+    if not logged_in_member:
+        print("Error: Cannot save cart. No user logged in.")
+        return False
+
+    cart_file = get_cart_filename(logged_in_member.member_id)
+    try:
+        with open(cart_file, 'w', encoding='utf-8') as file:
+            for item in cart:
+                pid = item.product_id if item.product_id else (item.product.product_id if item.product else "")
+                name = item.name if item.name else (item.product.name if item.product else "")
+                price = item.price if item.price is not None else (item.product.price if item.product else 0.0)
+                quantity = item.quantity
+                total = item.total if item.total is not None else (price * quantity)
+                status = item.status if item.status else (item.product.status if item.product else "")
+
+                file.write(f"{logged_in_member.member_id},{pid},{name},{price:.2f},{quantity},{total:.2f}\n")
+        return True
+    except IOError as e:
+        print(f"Error: Could not update cart file: {e}")
+        
+def update_product_file():
+    global products
+    try:
+        with open(PRODUCT_FILE, 'w', encoding='utf-8') as file:
+            for product in products:
+                pid = f'"{product.product_id}"' if ',' in product.product_id else product.product_id
+                name = f'"{product.name}"' if ',' in product.name else product.name
+                category = f'"{product.category}"' if ',' in product.category else product.category
+                price = str(product.price)
+                stock = str(product.stock)
+                status = f'"{product.status}"' if ',' in product.status else product.status
+
+                file.write(f"{pid},{name},{category},{price},{stock},{status}\n")
+        return True
+    except IOError as e:
+        print(f"Error: Could not update the product file: {e}")
+        return False
 
 def main_menu():
     global logged_in_member
