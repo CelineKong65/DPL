@@ -1329,6 +1329,105 @@ def add_to_cart(cart, product_id, quantity):
         selected_product.stock += quantity
         print("\nError: Could not save changes.")
 
+def display_cart(cart):
+    if not logged_in_member:
+        print("Error: No user logged in.")
+        input("Press [ENTER] to continue.")
+        return
+
+    clear_screen()
+
+    if not load_cart(cart):
+        print("Could not load cart data.")
+        input("Press [ENTER] to return.")
+        return
+
+    if not cart:
+        print("------------------------------------------------------------------")
+        print("                              MY CART                             ")
+        print("------------------------------------------------------------------")
+        print("\n                          Your cart is empty.                   ")
+        print("\n------------------------------------------------------------------")
+        print("\n1. Return to product list")
+        print("2. Return to main menu")
+
+        while True:
+            choice = input("\nEnter your choice: ")
+            if choice == '1':
+                clear_screen()
+                filter_products()
+                return
+            elif choice == '2':
+                clear_screen()
+                main_menu()
+                return
+            else:
+                print("Invalid choice. Please enter 1 or 2.")
+
+    print("------------------------------------------------------------------")
+    print("                              MY CART                             ")
+    print("------------------------------------------------------------------")
+    grand_total = 0.0
+
+    for i, item in enumerate(cart, 1):
+        pid = item.product_id if item.product_id else (item.product.product_id if item.product else "N/A")
+        name = item.name if item.name else (item.product.name if item.product else "N/A")
+        category = item.product.category if item.product and item.product.category else "N/A"
+        price = item.price if item.price is not None else (item.product.price if item.product else 0.0)
+        quantity = item.quantity
+        total = item.total if item.total is not None else (price * quantity)
+        status = item.product.status if item.product and item.product.status else "N/A"
+
+        print(f"Item {i}:")
+        print(f"Product ID : {pid}")
+        print(f"Name       : {name}")
+
+        if status=="Inactive":
+            total=0.0
+            print("SORRY! This product is currently unavailable :(")
+        else:
+            print(f"Category   : {category}")
+            print(f"Price      : RM {price:.2f}")
+            print(f"Quantity   : {quantity}")
+            print(f"Total      : RM {total:.2f}")
+
+        print("------------------------------------------------------------------")
+
+        grand_total += total
+
+    print(f"Total Price: RM {grand_total:.2f}")
+    print("------------------------------------------------------------------")
+
+    print("\n_____________________________________")
+    print("|Options:                            |")
+    print("|  1. Delete an item from cart       |")
+    print("|  2. Edit quantity of an item       |")
+    print("|  3. Proceed to payment             |")
+    print("|  4. Back to product list           |")
+    print("|  5. Back to main menu              |")
+    print("|____________________________________|")
+
+    while True:
+        choice = input("\nEnter your choice: ")
+        if choice == '1':
+            break
+        elif choice == '2':
+            break
+        elif choice == '3':
+            break
+        elif choice == '4':
+            clear_screen()
+            filter_products()
+            return
+        elif choice == '5':
+            clear_screen()
+            main_menu()
+            return
+        else:
+            print("Invalid choice. Please try again.")
+
+    display_cart(cart)
+
 def get_cart_filename(member_id):
     """Returns the full path to the cart file for a given member ID"""
     return os.path.join(f"{member_id}_cart.txt")
@@ -1446,7 +1545,7 @@ def main_menu():
             filter_products()
         elif choice == '2':
             cart = []
-            #display_cart(cart)
+            display_cart(cart)
         elif choice == '3':
             member_profile()
         elif choice == '4':
