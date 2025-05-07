@@ -1467,6 +1467,59 @@ def add_to_cart(cart, product_id, quantity):
         selected_product.stock += quantity
         print("\nError: Could not save changes.")
 
+def is_integer(string):
+    if string == "":
+        return False
+    for char in string:
+        if char < '0' or char > '9':
+            return False
+    return True
+
+#------------------------------------------------------------Member delete cart function------------------------------------------------
+def delete_cart(cart):
+    while True:
+        item_num_input = input("\nEnter item number to delete (or 0 to cancel): ").strip()
+
+        if not is_integer(item_num_input):
+            print("Invalid input. Please enter a number.")
+            continue
+
+        item_num = int(item_num_input)
+
+        if item_num == 0:
+            return False
+        elif item_num < 1 or item_num > len(cart):
+            print(f"Invalid item number. Please enter between 1 and {len(cart)}")
+            continue
+        else:
+            break
+
+    deleted_item = cart[item_num - 1]
+
+    new_cart = cart[:item_num - 1] + cart[item_num:]
+
+    for product in products:
+        if product.product_id == deleted_item.product_id:
+            product.stock += deleted_item.quantity
+            break
+
+    original_cart = cart[:]  
+
+    cart[:] = new_cart  
+
+    if save_cart(cart) and update_product_file():
+        print(f"'{deleted_item.name}' removed from cart successfully!")
+    else:
+        cart[:] = original_cart  
+        for product in products:
+            if product.product_id == deleted_item.product_id:
+                product.stock -= deleted_item.quantity
+                break
+        print("Failed to update cart. Changes reverted.")
+
+    input("Press [ENTER] to continue.")
+    return True
+
 def display_cart(cart):
     if not logged_in_member:
         print("Error: No user logged in.")
@@ -1548,6 +1601,7 @@ def display_cart(cart):
     while True:
         choice = input("\nEnter your choice: ")
         if choice == '1':
+            delete_cart(cart)
             break
         elif choice == '2':
             break
