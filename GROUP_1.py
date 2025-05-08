@@ -1520,6 +1520,103 @@ def delete_cart(cart):
     input("Press [ENTER] to continue.")
     return True
 
+#------------------------------------------------------------Member edit cart function------------------------------------------------
+def edit_cart(cart):
+    global logged_in_member
+    if not logged_in_member:
+        print("Error: No user logged in.")
+        input("Press [ENTER] to continue.")
+        return False
+
+    if not load_cart(cart):
+        print("Error: Could not load cart data.")
+        input("Press [ENTER] to continue.")
+        return False
+
+    if not cart:
+        print("Your cart is empty. Nothing to edit.")
+        input("Press [ENTER] to continue.")
+        return False
+
+    while True:
+        item_num_input = input("\nEnter item number to edit (or 0 to cancel): ").strip()
+
+        if not is_integer(item_num_input):
+            print("Invalid input. Please enter a number.")
+            continue
+
+        item_num = int(item_num_input)
+
+        if item_num == 0:
+            return False
+        elif item_num < 1 or item_num > len(cart):
+            print(f"Invalid item number. Please enter between 1 and {len(cart)}")
+            continue
+        else:
+            break
+
+    selected_item = cart[item_num - 1]
+    product_id = selected_item.product_id if selected_item.product_id else (
+        selected_item.product.product_id if selected_item.product else "")
+    
+    product = None
+    for p in products:
+        if p.product_id == product_id:
+            product = p
+            break
+
+    if not product:
+        print("Error: Product not found in inventory.")
+        input("Press [ENTER] to continue.")
+        return False
+
+    while True:
+        print(f"\nCurrent quantity: {selected_item.quantity}")
+        print(f"Available stock: {product.stock + selected_item.quantity}")
+        new_qty_input = input("Enter new quantity (or 0 to remove item): ").strip()
+
+        if not is_integer(new_qty_input):
+            print("Invalid input. Please enter a number.")
+            continue
+
+        new_qty = int(new_qty_input)
+
+        if new_qty == 0:
+            product.stock += selected_item.quantity
+            cart[:] = cart[:item_num - 1] + cart[item_num:]
+            
+            if save_cart(cart) and update_product_file():
+                print("Item removed from cart successfully!")
+            else:
+                product.stock -= selected_item.quantity
+                cart.insert(item_num - 1, selected_item)
+                print("Failed to update cart. Changes reverted.")
+            break
+        elif new_qty < 0:
+            print("Quantity cannot be negative.")
+            continue
+        elif new_qty > (product.stock + selected_item.quantity):
+            print(f"Not enough stock available. Maximum: {product.stock + selected_item.quantity}")
+            continue
+        else:
+            diff = new_qty - selected_item.quantity
+            
+            product.stock -= diff
+            selected_item.quantity = new_qty
+            selected_item.total = selected_item.price * new_qty
+            
+            if save_cart(cart) and update_product_file():
+                print("Cart updated successfully!")
+            else:
+                product.stock += diff
+                selected_item.quantity -= diff
+                selected_item.total = selected_item.price * (selected_item.quantity - diff)
+                print("Failed to update cart. Changes reverted.")
+            break
+
+    input("Press [ENTER] to continue.")
+    return True
+
 def display_cart(cart):
     if not logged_in_member:
         print("Error: No user logged in.")
@@ -1604,6 +1701,7 @@ def display_cart(cart):
             delete_cart(cart)
             break
         elif choice == '2':
+            edit_cart(cart)
             break
         elif choice == '3':
             break
