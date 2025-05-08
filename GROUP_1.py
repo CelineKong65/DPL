@@ -1487,9 +1487,14 @@ def delete_cart(cart):
         item_num = int(item_num_input)
 
         if item_num == 0:
+            print("Cancel successful!")
+            input("Press [ENTER] to refresh cart.")
             return False
         elif item_num < 1 or item_num > len(cart):
-            print(f"Invalid item number. Please enter between 1 and {len(cart)}")
+            if len(cart) == 1:
+                print("Invalid item number. Please enter 1")
+            else:
+                print(f"Invalid item number. Please enter between 1 and {len(cart)}")
             continue
         else:
             break
@@ -1548,9 +1553,14 @@ def edit_cart(cart):
         item_num = int(item_num_input)
 
         if item_num == 0:
+            print("Cancel successful!")
+            input("Press [ENTER] to continue.")
             return False
         elif item_num < 1 or item_num > len(cart):
-            print(f"Invalid item number. Please enter between 1 and {len(cart)}")
+            if len(cart) == 1:
+                print("Invalid item number. Please enter 1")
+            else:
+                print(f"Invalid item number. Please enter between 1 and {len(cart)}")
             continue
         else:
             break
@@ -1566,7 +1576,7 @@ def edit_cart(cart):
             break
 
     if not product:
-        print("Error: Product not found in inventory.")
+        print("Product not found in inventory.")
         input("Press [ENTER] to continue.")
         return False
 
