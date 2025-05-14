@@ -64,6 +64,84 @@ logged_in_admin = ""
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
 
+def get_length(arr):
+    count = 0
+    for _ in arr:
+        count += 1
+    return count
+
+def bubble_sort(arr, key=None, reverse=False):
+    n = get_length(arr)
+    for i in range(n-1):
+        swapped = False
+        for j in range(0, n-i-1):
+            # Get values to compare
+            if key:
+                a = getattr(arr[j], key) if hasattr(arr[j], key) else arr[j]
+                b = getattr(arr[j+1], key) if hasattr(arr[j+1], key) else arr[j+1]
+            else:
+                a = arr[j]
+                b = arr[j+1]
+            
+            # Compare based on reverse flag
+            if (a > b) if not reverse else (a < b):
+                arr[j], arr[j+1] = arr[j+1], arr[j]
+                swapped = True
+        if not swapped:
+            break
+
+def jump_search(arr, target, key=None):
+    n = len(arr)
+    if n == 0:
+        return None
+    
+    # Calculate jump size
+    step = int(n ** 0.5)
+    
+    # Find the block where target be present
+    prev = 0
+    while True:
+        if key:
+            current_val = getattr(arr[min(step, n)-1], key) if hasattr(arr[min(step, n)-1], key) else None
+        else:
+            current_val = arr[min(step, n)-1]
+            
+        if current_val is None:
+            return None
+        
+        if current_val < target:
+            prev = step
+            step += int(n ** 0.5)
+            if prev >= n:
+                return None
+        
+        else:
+            break
+        
+    # Perform Linear search in the indentified block
+    if key:
+        while getattr(arr[prev], key) < target:
+            prev += 1
+            if prev == min(step, n):
+                return None
+            
+    else:
+        while arr[prev] < target:
+            prev += 1
+            if prev == min(step, n):
+                return None
+            
+    # Check if found the target
+    if key:
+        if getattr(arr[prev], key) == target:
+            return arr[prev]
+        
+    else:
+        if arr[prev] == target:
+            return arr[prev]
+        
+    return None 
+
 def load_members():
     global members
     try:
@@ -1145,7 +1223,7 @@ def admin_menu():
         choice = input("Enter your choice: ")
 
         if choice == '1':
-            return
+            filter_product_admin()
         elif choice == '2':
             return
         elif choice == '3':
@@ -1163,6 +1241,286 @@ def admin_menu():
         else:
             input("\nInvalid choice. Press [ENTER] to try again.")
             clear_screen()
+
+def filter_product_admin():
+    global products
+
+    if not load_products():
+        print("Failed to load products.")
+        input("Press [ENTER] to return to main menu.")
+        clear_screen()
+        main_menu()
+        return
+
+    while True:
+        clear_screen()
+        print("===============================================================")
+        print("                YESMOLAR BAKERY STORE INVENTORY                ")
+        print("===============================================================")
+        print("Select a category:")
+        categories = {
+            '1': 'Bread', '2': 'Pastries', '3': 'Cakes', '4': 'Donuts',
+            '5': 'Cupcakes & Muffins', '6': 'Cookies', '7': 'Pies & Tarts',
+            '8': 'Savories & Sandwiches'
+        }
+        for key, value in categories.items():
+            print(f" [{key}] {value}")
+        print(" [9] Back to Admin Menu")
+        print("===============================================================")
+
+        choice = input("Enter your choice (1-9): ")
+        if choice == '9':
+            clear_screen()
+            admin_menu()
+            return
+        elif choice not in categories:
+            print("Invalid choice. Please try again.")
+            input("Press [ENTER] to continue.")
+            continue
+
+        selected_category = categories[choice]
+        while True:
+            clear_screen()
+            print(f"===== Products in Category: {selected_category} =====")
+            load_products()
+
+            display_product_admin(products, selected_category)
+            print("---------------------------------------------------------------")
+
+            # Admin options
+            print("\n1. Add New Product to This Category")
+            print("2. Edit Existing Product")
+            print("3. Restock Product")
+            print("4. Return to Category Selection")
+        
+            admin_choice = input("\nEnter your choice: ")
+        
+            if admin_choice == '1':
+                add_product(products, selected_category)
+            elif admin_choice == '2':
+                edit_product(products, selected_category)
+            elif admin_choice == '3':
+                restock_product(products, selected_category)
+            elif admin_choice == '4':
+                clear_screen()
+                filter_product_admin()
+                continue
+            else:
+                print("Invalid option, returning to category selection.")
+                clear_screen()
+
+def display_product_admin(products, selected_category):
+    for product in products:
+        if product.category == selected_category:
+            print("---------------------------------------------------------------")
+            print(f"Product ID: {product.product_id}")
+            print("---------------------------------------------------------------")
+            print(f"| Name     : {product.name}")
+            print(f"| Category : {product.category}")
+            print(f"| Price    : RM {product.price:.2f}")
+            print(f"| Stock    : {product.stock}")
+            print(f"| Status   : {product.status}")
+            print("---------------------------------------------------------------")
+
+def add_product(products, category):
+    new_product = Product()
+    new_product.category = category
+    
+    # Get product ID
+    while True:
+        new_product.product_id = input("Enter ID in 3 digits: ")
+        if get_length(new_product.product_id) != 3:
+            print("ID must be exactly 3 digits!")
+            continue
+            
+        # Check if ID already exists
+        id_exists = False
+        id_exists = jump_search(products, new_product.product_id, key='product_id')
+                
+        if id_exists:
+            print("Product ID already exists! Please enter a different ID.")
+        else:
+            break
+    
+    # Get product name
+    while True:
+        new_product.name = input("Enter product name: ").strip()
+        if get_length(new_product.name) == 0:
+            print("Name cannot be empty!")
+            continue
+        break
+    
+    # Get product price
+    while True:
+        price_input = input("Enter price: ")
+        try:
+            new_product.price = float(price_input)
+            if new_product.price <= 0:
+                print("Price must be positive!")
+                continue
+            break
+        except:
+            print("Invalid price! Please enter a valid number.")
+    
+    # Get product stock
+    while True:
+        stock_input = input("Enter stock quantity: ")
+        try:
+            new_product.stock = int(stock_input)
+            if new_product.stock < 0:
+                print("Stock cannot be negative!")
+                continue
+            break
+        except:
+            print("Invalid quantity! Please enter a whole number.")
+    
+    # Get product status
+    while True:
+        new_product.status = input("Enter status [Active/Inactive]: ").capitalize()
+        if new_product.status not in ["Active", "Inactive"]:
+            print("Status must be either 'Active' or 'Inactive'!")
+            continue
+        break
+    
+    # Add to products list and update file
+    products.append(new_product)
+    if update_product_file():
+        print("\nProduct added successfully!")
+    else:
+        print("\nError saving product to file!")
+    
+    input("Press [ENTER] to continue.")
+    filter_product_admin()
+
+def edit_product(products, category):
+    if not products:
+        print("No products available to edit.")
+        input("Press [ENTER] to continue.")
+        return
+        
+    product_id = input("\nEnter the Product ID to edit: ")
+    
+    # Find product to edit
+    product_to_edit = None
+    product_to_edit = jump_search(products, product_id, key='product_id')
+    
+    if not product_to_edit:
+        print("\nNo product found with that ID in this category!")
+        input("Press [ENTER] to continue.")
+        return
+    
+    print(f"\nEditing product: {product_to_edit.name}")
+    
+    # Edit name
+    while True:
+        new_name = input(f"Enter new name [{product_to_edit.name}]: ").strip()
+        if get_length(new_name) == 0:
+            new_name = product_to_edit.name
+            break
+        if get_length(new_name) < 2:
+            print("Name must be at least 2 characters!")
+            continue
+        break
+    
+    # Edit price
+    while True:
+        price_input = input(f"Enter new price [{product_to_edit.price}]: ").strip()
+        if get_length(price_input) == 0:
+            new_price = product_to_edit.price
+            break
+        try:
+            new_price = float(price_input)
+            if new_price <= 0:
+                print("Price must be positive!")
+                continue
+            break
+        except:
+            print("Invalid price! Please enter a valid number.")
+    
+    # Edit stock
+    while True:
+        stock_input = input(f"Enter new stock [{product_to_edit.stock}]: ").strip()
+        if get_length(stock_input) == 0:
+            new_stock = product_to_edit.stock
+            break
+        try:
+            new_stock = int(stock_input)
+            if new_stock < 0:
+                print("Stock cannot be negative!")
+                continue
+            break
+        except:
+            print("Invalid quantity! Please enter a whole number.")
+    
+    # Edit status
+    while True:
+        status_input = input(f"Enter new status [{product_to_edit.status}] (Active/Inactive): ").capitalize().strip()
+        if get_length(status_input) == 0:
+            new_status = product_to_edit.status
+            break
+        if status_input not in ["Active", "Inactive"]:
+            print("Status must be either 'Active' or 'Inactive'!")
+            continue
+        new_status = status_input
+        break
+    
+    # Update product
+    product_to_edit.name = new_name
+    product_to_edit.price = new_price
+    product_to_edit.stock = new_stock
+    product_to_edit.status = new_status
+    
+    if update_product_file():
+        print("\nProduct updated successfully!")
+    else:
+        print("\nError saving changes to file!")
+    
+    input("Press [ENTER] to continue.")
+    filter_product_admin()
+
+def restock_product(products, category):
+    if not products:
+        print("No products available to restock.")
+        input("Press [ENTER] to continue.")
+        return
+        
+    product_id = input("\nEnter the Product ID to restock: ")
+    
+    # Find product to restock
+    product_to_restock = None
+    product_to_restock = jump_search(products, product_id, key='product_id')
+    
+    if not product_to_restock:
+        print("\nNo product found with that ID in this category!")
+        input("Press [ENTER] to continue.")
+        return
+    
+    print(f"\nRestocking product: {product_to_restock.name}")
+    print(f"Current stock: {product_to_restock.stock}")
+    
+    # Get additional stock
+    while True:
+        add_stock_input = input("Enter quantity to add: ").strip()
+        try:
+            add_stock = int(add_stock_input)
+            if add_stock <= 0:
+                print("Quantity must be positive!")
+                continue
+            break
+        except:
+            print("Invalid quantity! Please enter a whole number.")
+    
+    # Update stock
+    product_to_restock.stock += add_stock
+    
+    if update_product_file():
+        print(f"\nProduct restocked successfully! New stock: {product_to_restock.stock}")
+    else:
+        print("\nError saving changes to file!")
+        product_to_restock.stock -= add_stock  # Revert if save failed
+    
+    input("Press [ENTER] to continue.")
+    filter_product_admin()
 
 def main_menu():
     global logged_in_member
@@ -1265,23 +1623,24 @@ def load_products():
                 try:
                     product.price = float(price_str) if price_str else 0.0
                 except ValueError:
-                    print(f"Warning: Invalid price format '{price_str}'. Setting price to 0.0.")
                     product.price = 0.0
 
                 try:
                     product.stock = int(stock_str) if stock_str else 0
                 except ValueError:
-                    print(f"Warning: Invalid stock format '{stock_str}'. Setting stock to 0.")
                     product.stock = 0
 
                 products.append(product)
+        
+        # Sort products by product_id
+        bubble_sort(products, key='product_id')
+        return True
     except FileNotFoundError:
         print(f"Error: Product file '{PRODUCT_FILE}' not found!")
         return False
     except IOError as e:
         print(f"Error: Could not read the product file: {e}")
         return False
-    return True
 
 def filter_products():
     global products
@@ -1325,7 +1684,7 @@ def filter_products():
             clear_screen()
             print(f"===== Products in Category: {selected_category} =====")
             load_products()
-            # Only show active products in the seletcted category
+            # Only show active products in this category
             filtered = [p for p in products if p.category.lower() == selected_category.lower() and p.status == "Active"]
 
             if not filtered:
@@ -1357,11 +1716,7 @@ def filter_products():
 
             product_id = selection
             product = None
-            # Check all products to see if ID exists
-            for p in products:
-                if p.product_id == product_id:
-                    product = p
-                    break
+            product = jump_search(products, selection, key='product_id')
 
             if not product:
                 print(f"\nProduct with ID '{product_id}' not found.")
@@ -1400,23 +1755,25 @@ def add_to_cart(cart, product_id, quantity):
         return
 
     global products
-    if not products and not load_products():
-        print("Error: Could not load products.")
-        return
+    if not products:
+        if not load_products():
+            print("Error: Could not load products.")
+            return
 
-    selected_product = None
-    for p in products:
-        if p.product_id == product_id:
-            selected_product = p
-            break
+    # Sort products by product_id
+    bubble_sort(products, key='product_id')
+
+    # Search for product using the correct product_id
+    selected_product = jump_search(products, product_id, key='product_id')
 
     if not selected_product:
         print(f"Error: Product with ID {product_id} not found.")
         return
-    
+
     if selected_product.status == "Inactive":
         print("Error: This product is currently unavailable.")
         return
+
     if quantity <= 0:
         print("Error: Quantity must be positive.")
         return
@@ -1429,20 +1786,18 @@ def add_to_cart(cart, product_id, quantity):
         print("Error: Could not load current cart.")
         return
 
-    found = False
-    for item in cart:
-        if (item.product_id == product_id or 
-            (item.product and item.product.product_id == product_id)):
-            if selected_product.stock < item.quantity + quantity:
-                print(f"Error: Adding {quantity} would exceed stock.")
-                return
-            item.quantity += quantity
-            item.price = selected_product.price
-            item.total = item.quantity * item.price
-            found = True
-            break
+    # Check if item is already in the cart
+    bubble_sort(cart, key='product_id')
+    item = jump_search(cart, product_id, key='product_id')
 
-    if not found:
+    if item:
+        if selected_product.stock < item.quantity + quantity:
+            print(f"Error: Adding {quantity} would exceed stock.")
+            return
+        item.quantity += quantity
+        item.price = selected_product.price
+        item.total = item.quantity * item.price
+    else:
         cart.append(CartItem(
             product=selected_product,
             product_id=selected_product.product_id,
@@ -1457,6 +1812,7 @@ def add_to_cart(cart, product_id, quantity):
     if save_cart(cart) and update_product_file():
         print(f"\nSuccessfully added {quantity} x {selected_product.name} to cart!")
     else:
+        # Revert stock if saving failed
         selected_product.stock += quantity
         print("\nError: Could not save changes.")
 
