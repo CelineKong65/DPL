@@ -66,14 +66,33 @@ logged_in_admin = ""
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
 
-def get_length(arr):
-    count = 0
-    for _ in arr:
-        count += 1
-    return count
+ascii_table = [
+    '\x00', '\x01', '\x02', '\x03', '\x04', '\x05', '\x06', '\x07', 
+    '\x08', '\t', '\n', '\x0b', '\x0c', '\r', '\x0e', '\x0f', 
+    '\x10', '\x11', '\x12', '\x13', '\x14', '\x15', '\x16', '\x17', 
+    '\x18', '\x19', '\x1a', '\x1b', '\x1c', '\x1d', '\x1e', '\x1f', 
+    ' ', '!', '"', '#', '$', '%', '&', "'", 
+    '(', ')', '*', '+', ',', '-', '.', '/', 
+    '0', '1', '2', '3', '4', '5', '6', '7', 
+    '8', '9', ':', ';', '<', '=', '>', '?', 
+    '@', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 
+    'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 
+    'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 
+    'X', 'Y', 'Z', '[', '\\', ']', '^', '_', 
+    '`', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 
+    'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 
+    'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 
+    'x', 'y', 'z', '{', '|', '}', '~', '\x7f'
+]
+
+def custom_chr(code):
+    if 0 <= code <= 127:
+        return ascii_table[code]
+    else:
+        return ascii_table[code % 128]
 
 def bubble_sort(arr, key=None, reverse=False):
-    n = get_length(arr)
+    n = len(arr)
     for i in range(n-1):
         swapped = False
         for j in range(0, n-i-1):
@@ -593,18 +612,18 @@ def edit_member_profile():
 
     while True:
         clear_screen()
-        print("------------------------------------------------------------------")
-        print("|                       EDIT YOUR PROFILE                        |")
-        print("------------------------------------------------------------------")
-        print("| 1. Member ID (Not Editable)                                    |")
-        print("| 2. Full Name                                                   |")
-        print("| 3. Email                                                       |")
-        print("| 4. Password                                                    |")
-        print("| 5. Age                                                         |")
-        print("| 6. Gender                                                      |")
-        print("| 7. Contact Number                                              |")
-        print("| 8. Return to Profile Menu                                      |")
-        print("------------------------------------------------------------------")
+        print("============================================================================")
+        print("|                             EDIT YOUR PROFILE                            |")
+        print("============================================================================")
+        print("| 1. Member ID (Not Editable)                                              |")
+        print("| 2. Full Name                                                             |")
+        print("| 3. Email                                                                 |")
+        print("| 4. Password                                                              |")
+        print("| 5. Age                                                                   |")
+        print("| 6. Gender                                                                |")
+        print("| 7. Contact Number                                                        |")
+        print("| 8. Return to Profile Menu                                                |")
+        print("============================================================================")
 
         choice = input("\nSelect the number you want to edit (1-8): ")
 
@@ -613,7 +632,7 @@ def edit_member_profile():
 
         elif choice == "2":
             while True:
-                new_name = input("Enter new Full Name: ")
+                new_name = input("\nEnter new Full Name: ")
 
                 letter_count = 0
                 is_valid = True
@@ -636,7 +655,7 @@ def edit_member_profile():
                 for char in new_name:
                     if char != ' ':
                         if 'A' <= char <= 'Z':
-                            cleaned_new_name += chr(ord(char) + 32)
+                            cleaned_new_name += custom_chr(ord(char) + 32)
                         else:
                             cleaned_new_name += char
 
@@ -649,7 +668,7 @@ def edit_member_profile():
                     for char in member.full_name:
                         if char != ' ':
                             if 'A' <= char <= 'Z':
-                                cleaned_existing += chr(ord(char) + 32)
+                                cleaned_existing += custom_chr(ord(char) + 32)
                             else:
                                 cleaned_existing += char
 
@@ -663,13 +682,13 @@ def edit_member_profile():
 
                 logged_in_member.full_name = new_name
                 update_member(logged_in_member)
-                print("Full Name updated successfully!")
-                input("Press [ENTER] to continue.")
+                print("\nFull Name updated successfully!")
+                input("\nPress [ENTER] to continue.")
                 break
 
         elif choice == "3":
             while True:
-                new_email = input("Enter new email: ")
+                new_email = input("\nEnter new email: ")
 
                 has_at = False
                 has_dot = False
@@ -687,7 +706,7 @@ def edit_member_profile():
                 for char in new_email:
                     if char != ' ':
                         if 'A' <= char <= 'Z':
-                            cleaned_new_email += chr(ord(char) + 32)
+                            cleaned_new_email += custom_chr(ord(char) + 32)
                         else:
                             cleaned_new_email += char
 
@@ -700,7 +719,7 @@ def edit_member_profile():
                     for char in member.email:
                         if char != ' ':
                             if 'A' <= char <= 'Z':
-                                cleaned_existing += chr(ord(char) + 32)
+                                cleaned_existing += custom_chr(ord(char) + 32)
                             else:
                                 cleaned_existing += char
 
@@ -714,14 +733,55 @@ def edit_member_profile():
 
                 logged_in_member.email = new_email
                 update_member(logged_in_member)
-                print("Email updated successfully!")
-                input("Press [ENTER] to continue.")
+                print("\nEmail updated successfully!")
+                input("\nPress [ENTER] to continue.")
+                break
+
+        elif choice == "4":
+            while True:
+                logged_in_member.password = ""
+                logged_in_member.password = input("\nEnter your new password (example: Xuanting123): ")
+
+                if len(logged_in_member.password) < 8:
+                    print("Password must be at least 8 characters!")
+                    continue
+
+                upper = False
+                lower = False
+                digit = False
+
+                for char in logged_in_member.password:
+                    if 'A' <= char <= 'Z':
+                        upper = True
+                    elif 'a' <= char <= 'z': 
+                        lower = True
+                    elif '0' <= char <= '9': 
+                        digit = True
+
+                if not upper:
+                    print("Password must contain at least one uppercase letter!")
+                    continue
+                if not lower:
+                    print("Password must contain at least one lowercase letter!")
+                    continue
+                if not digit:
+                    print("Password must contain at least one digit!")
+                    continue
+                
+                confirm_password = input("\nConfirm your password: ")
+                if confirm_password != logged_in_member.password:
+                    print("Passwords do not match!")
+                    continue
+            
+                update_member(logged_in_member)
+                print("\nPassword updated successfully!")
+                input("\nPress [ENTER] to continue.")
                 break
 
         elif choice == "5":
             try:
                 while True:
-                    logged_in_member.age = input("Enter new age: ")
+                    logged_in_member.age = input("\nEnter new age: ")
 
                     if len(logged_in_member.age) != 2:
                         print("Age must be exactly 2 digits!")
@@ -741,15 +801,15 @@ def edit_member_profile():
                         continue
 
                     update_member(logged_in_member)
-                    print("Age updated successfully!")
+                    print("\nAge updated successfully!")
                     break
             except ValueError:
                 print("Invalid input! Age must be a number.")
-            input("Press [ENTER] to continue.")
+            input("\nPress [ENTER] to continue.")
 
         elif choice == "6":
             while True:
-                logged_in_member.gender = input("Enter new gender (male or female): ")
+                logged_in_member.gender = input("\nEnter new gender (male or female): ")
 
                 is_valid= False
 
@@ -774,13 +834,13 @@ def edit_member_profile():
                     continue
 
                 update_member(logged_in_member)
-                print("Gender updated successfully!")
-                input("Press [ENTER] to continue.")
+                print("\nGender updated successfully!")
+                input("\nPress [ENTER] to continue.")
                 break
 
         elif choice == "7":
             while True:
-                logged_in_member.contact  = input("Enter your contact number (example: 012-34567890): ")
+                logged_in_member.contact  = input("\nEnter your contact number (example: 012-34567890): ")
 
                 if len(logged_in_member.contact) < 4 or logged_in_member.contact[3] != '-':
                     print("Format must be like 012-34567890 with a dash at the 4th position!")
@@ -814,8 +874,8 @@ def edit_member_profile():
                     continue
     
                 update_member(logged_in_member)
-                print("Contact Number updated successfully!")
-                input("Press [ENTER] to continue.")
+                print("\nContact Number updated successfully!")
+                input("\nPress [ENTER] to continue.")
                 break
         
         elif choice == "8":
@@ -965,9 +1025,9 @@ def update_admin(updated_admin, original_name):
                     a = name[j]
                     b = original_name[j]
                     if 'A' <= a <= 'Z':
-                        a = chr(ord(a) + 32)
+                        a = custom_chr(ord(a) + 32)
                     if 'A' <= b <= 'Z':
-                        b = chr(ord(b) + 32)
+                        b = custom_chr(ord(b) + 32)
                     if a != b:
                         same = False
                         break
@@ -1038,21 +1098,21 @@ def edit_admin_profile():
 
     while True:
         clear_screen()
-        print("------------------------------------------------------------------")
-        print("|                       EDIT YOUR PROFILE                        |")
-        print("------------------------------------------------------------------")
-        print("| 1. Name                                                        |")
-        print("| 2. Password                                                    |")
-        print("| 3. Contact Number                                              |")
-        print("| 4. Position (Not Editable)                                     |")
-        print("| 5. Return to Profile Menu                                      |")
-        print("------------------------------------------------------------------")
+        print("============================================================================")
+        print("|                              EDIT YOUR PROFILE                           |")
+        print("============================================================================")
+        print("| 1. Name                                                                  |")
+        print("| 2. Password                                                              |")
+        print("| 3. Contact Number                                                        |")
+        print("| 4. Position (Not Editable)                                               |")
+        print("| 5. Return to Profile Menu                                                |")
+        print("============================================================================")
 
         choice = input("\nSelect the number you want to edit (1-5): ")
 
         if choice == "1":
             while True:
-                new_name = input("Enter new Full Name: ")
+                new_name = input("\nEnter new Full Name: ")
 
                 letter_count = 0
                 is_valid = True
@@ -1077,7 +1137,7 @@ def edit_admin_profile():
                 for char in new_name:
                     if char != ' ':
                         if 'A' <= char <= 'Z':
-                            cleaned_new += chr(ord(char) + 32)
+                            cleaned_new += custom_chr(ord(char) + 32)
                         else:
                             cleaned_new += char
 
@@ -1085,7 +1145,7 @@ def edit_admin_profile():
                 for char in logged_in_admin.name:
                     if char != ' ':
                         if 'A' <= char <= 'Z':
-                            cleaned_current_admin += chr(ord(char) + 32)
+                            cleaned_current_admin += custom_chr(ord(char) + 32)
                         else:
                             cleaned_current_admin += char
 
@@ -1095,7 +1155,7 @@ def edit_admin_profile():
                     for char in admin.name:
                         if char != ' ':
                             if 'A' <= char <= 'Z':
-                                cleaned_admin_name += chr(ord(char) + 32)
+                                cleaned_admin_name += custom_chr(ord(char) + 32)
                             else:
                                 cleaned_admin_name += char
 
@@ -1110,15 +1170,14 @@ def edit_admin_profile():
                 original_name = logged_in_admin.name
                 logged_in_admin.name = new_name
                 update_admin(logged_in_admin, original_name)
-                print("Name updated successfully!")
-                input("Press [ENTER] to continue.")
+                print("\nName updated successfully!")
+                input("\nPress [ENTER] to continue.")
                 break
-
 
         elif choice == "2":
             while True:
                 logged_in_admin.password = ""
-                logged_in_admin.password = input("Enter your new password (example: Xuanting123): ")
+                logged_in_admin.password = input("\nEnter your new password (example: Xuanting123): ")
 
                 if len(logged_in_admin.password) < 8:
                     print("Password must be at least 8 characters!")
@@ -1146,19 +1205,19 @@ def edit_admin_profile():
                     print("Password must contain at least one digit!")
                     continue
                 
-                confirm_password = input("Confirm your password: ")
+                confirm_password = input("\nConfirm your password: ")
                 if confirm_password != logged_in_admin.password:
-                    print("Passwords do not match!")
+                    print("\nPasswords do not match!")
                     continue
             
-                update_admin(logged_in_admin)
-                print("Password updated successfully!")
-                input("Press [ENTER] to continue.")
+                update_admin(logged_in_admin, logged_in_admin.name)
+                print("\nPassword updated successfully!")
+                input("\nPress [ENTER] to continue.")
                 break
 
         elif choice == "3":
             while True:
-                logged_in_admin.contact  = input("Enter your contact number (example: 012-34567890): ")
+                logged_in_admin.contact  = input("\nEnter your contact number (example: 012-34567890): ")
 
                 if len(logged_in_admin.contact) < 4 or logged_in_admin.contact[3] != '-':
                     print("Format must be like 012-34567890 with a dash at the 4th position!")
@@ -1191,9 +1250,9 @@ def edit_admin_profile():
                     print("Phone number must be 10 or 11 digits!")
                     continue
     
-                update_admin(logged_in_admin)
-                print("Contact Number updated successfully!")
-                input("Press [ENTER] to continue.")
+                update_admin(logged_in_admin, logged_in_admin.name)
+                print("\nContact Number updated successfully!")
+                input("\nPress [ENTER] to continue.")
                 break
         elif choice == "4":
             input("\nYour position cannot be edited. Press [ENTER] to continue.")
@@ -1458,7 +1517,7 @@ def add_product(products, category):
     # Get product ID
     while True:
         new_product.product_id = input("Enter ID in 3 digits: ")
-        if get_length(new_product.product_id) != 3:
+        if len(new_product.product_id) != 3:
             print("ID must be exactly 3 digits!")
             continue
             
@@ -1474,7 +1533,7 @@ def add_product(products, category):
     # Get product name
     while True:
         new_product.name = input("Enter product name: ").strip()
-        if get_length(new_product.name) == 0:
+        if len(new_product.name) == 0:
             print("Name cannot be empty!")
             continue
         break
@@ -1543,10 +1602,10 @@ def edit_product(products, category):
     # Edit name
     while True:
         new_name = input(f"Enter new name [{product_to_edit.name}]: ").strip()
-        if get_length(new_name) == 0:
+        if len(new_name) == 0:
             new_name = product_to_edit.name
             break
-        if get_length(new_name) < 2:
+        if len(new_name) < 2:
             print("Name must be at least 2 characters!")
             continue
         break
@@ -1554,7 +1613,7 @@ def edit_product(products, category):
     # Edit price
     while True:
         price_input = input(f"Enter new price [{product_to_edit.price}]: ").strip()
-        if get_length(price_input) == 0:
+        if len(price_input) == 0:
             new_price = product_to_edit.price
             break
         try:
@@ -1569,7 +1628,7 @@ def edit_product(products, category):
     # Edit stock
     while True:
         stock_input = input(f"Enter new stock [{product_to_edit.stock}]: ").strip()
-        if get_length(stock_input) == 0:
+        if len(stock_input) == 0:
             new_stock = product_to_edit.stock
             break
         try:
@@ -1584,7 +1643,7 @@ def edit_product(products, category):
     # Edit status
     while True:
         status_input = input(f"Enter new status [{product_to_edit.status}] (Active/Inactive): ").capitalize().strip()
-        if get_length(status_input) == 0:
+        if len(status_input) == 0:
             new_status = product_to_edit.status
             break
         if status_input not in ["Active", "Inactive"]:
