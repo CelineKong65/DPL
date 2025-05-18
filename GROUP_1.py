@@ -1296,24 +1296,28 @@ def admin_menu():
     global logged_in_member 
 
     while True:
-        print("===============================================================")
-        print("                          ADMIN MENU                           ")
-        print("===============================================================")
-        print(" [1] Manage Pastry Inventory")
-        print(" [2] Manage Member List")
-        print(" [3] Manage Admin List")
-        print(" [4] Manage Feedback and Rating")
-        print(" [5] View Dashboard")
-        print(" [6] My profile")
-        print(" [7] Log Out")
-        print("===============================================================")
+        clear_screen()
+        print("===========================================================================")
+        print("|                                ADMIN MENU                               |")
+        print("===========================================================================")
+        print("| [1] Manage Pastry Inventory                                             |")
+        print("| [2] Manage Member List                                                  |")
+        print("| [3] Manage Admin List                                                   |")
+        print("| [4] Manage Feedback and Rating                                          |")
+        print("| [5] View Dashboard                                                      |")
+        print("| [6] View Order History                                                  |")
+        print("| [7] View Sales Report                                                   |")
+        print("| [8] My profile                                                          |")
+        print("| [9] Log Out                                                             |")
+        print("===========================================================================")
+
 
         choice = input("Enter your choice: ")
 
         if choice == '1':
             filter_product_admin()
         elif choice == '2':
-            return
+            manage_member()
         elif choice == '3':
             return
         elif choice == '4':
@@ -1322,8 +1326,12 @@ def admin_menu():
         elif choice == '5':
             return
         elif choice == '6':
-            admin_profile()
+            return
         elif choice == '7':
+            view_sales_report()
+        elif choice == '8':
+            admin_profile()
+        elif choice == '9':
             input("\nPress [ENTER] to logout.")
             clear_screen()
             return login_menu()
@@ -2645,6 +2653,211 @@ def view_sales_report():
         print("Required data files not found.")
         input("Press [ENTER] to continue.")
 # ====================================END OF VIEW SALES REPORT===================================
+
+# =======================================MANAGE MEMBER LIST======================================
+def manage_member():
+    while True:
+        clear_screen()
+        print("===========================================================================")
+        print("|                            MANAGE MEMBER LIST                           |")      
+        print("===========================================================================")
+        print("| [1] View Active Members                                                 |")
+        print("| [2] View Inactive Members                                               |")
+        print("| [3] Change Member Status                                                |")
+        print("| [4] Return to Admin Menu                                                |")
+        print("===========================================================================")
+        
+        choice = input("Enter your choice: ")
+        
+        if choice == '1':
+            view_member_list("Active")
+        elif choice == '2':
+            view_member_list("Inactive")
+        elif choice == '3':
+            change_member_status()
+        elif choice == '4':
+            return
+        else:
+            input("Invalid choice, Press [ENTER] to try again. ")
+
+def view_member_list(status_filter):
+    try:
+        members = []
+        with open(MEMBERS_FILE, 'r') as file:
+            lines = []
+            for line in file:
+                line = line.strip()
+                if line:
+                    lines.append(line)
+            
+            for i in range(0, len(lines), 8):
+                if i + 7 < len(lines):
+                    member = Member(
+                        member_id=lines[i],
+                        full_name=lines[i+1],
+                        email=lines[i+2],
+                        password=lines[i+3],
+                        age=lines[i+4],
+                        gender=lines[i+5],
+                        contact=lines[i+6],
+                        status=lines[i+7]
+                    )
+                    members.append(member)
+        
+        filtered_members = []
+        for m in members:
+            if m.status == status_filter:
+                filtered_members.append(m)
+        
+        clear_screen()
+        if status_filter == "Active":
+            print("===========================================================================")
+            print("|                         ACTIVE MEMBER LIST                              |")      
+        else:
+            print("===========================================================================")
+            print("|                          INACTIVE MEMBER LIST                           |")      
+        print("===========================================================================")
+                
+        if not filtered_members:
+            print("|                                                                         | ")
+            print(f"|                      No {status_filter.lower()+' members found.':<48}|")
+            print("|                                                                         | ")
+            print("---------------------------------------------------------------------------")
+            input("\nPress [ENTER] to continue.")
+            return
+        
+        for member in filtered_members:
+            print(f"| Member ID         : {member.member_id:<52}|")
+            print(f"| Name              : {member.full_name:<52}|")
+            print(f"| Email             : {member.email:<52}|")
+            print(f"| Age               : {member.age:<52}|")
+            print(f"| Gender            : {member.gender:<52}|")
+            print(f"| Contact           : {member.contact:<52}|")
+            print("---------------------------------------------------------------------------")
+        
+        while True:
+            search_choice = input("\nDo you want to search member by ID? (Y/N to return): ").upper().strip()
+            
+            if search_choice == 'N':
+                return
+            
+            if search_choice == 'Y':
+                bubble_sort(filtered_members, key='member_id')
+                
+                while True:
+                    search_id = input("\nEnter Member ID to search (or 'C' to cancel): ").strip().upper()
+                    
+                    if search_id == 'C':
+                        break
+                    
+                    found_member = jump_search(filtered_members, search_id, key='member_id')
+                    
+                    if found_member:
+                        clear_screen()
+                        print("===========================================================================")
+                        print("|                                MEMBER DETAILS                           |")
+                        print("===========================================================================")
+                        print(f"| Member ID         : {found_member.member_id:<52}|")
+                        print(f"| Name              : {found_member.full_name:<52}|")
+                        print(f"| Email             : {found_member.email:<52}|")
+                        print(f"| Age               : {found_member.age:<52}|")
+                        print(f"| Gender            : {found_member.gender:<52}|")
+                        print(f"| Contact           : {found_member.contact:<52}|")
+                        print(f"| Status            : {found_member.status:<52}|")
+                        print("===========================================================================")
+                        input("\nPress [ENTER] to continue.")
+                        break
+                    else:
+                        print(f"Member with ID {search_id} not found in {status_filter.lower()} members.")
+                        continue
+                
+                clear_screen()
+                break
+            
+            print("Invalid choice. Please enter Y (Yes), or N (No).")
+            continue
+            
+    except FileNotFoundError:
+        print("Member file not found.")
+        input("Press [ENTER] to continue.")
+        return
+
+def change_member_status():
+    try:
+        clear_screen()
+        print("===========================================================================")
+        print("|                                MEMBER LIST                              |")
+        print("===========================================================================")
+        print("| ID              | Name                   | Status                       |")
+        print("===========================================================================")
+        
+        member_ids = []
+        with open(MEMBERS_FILE, 'r') as file:
+            lines = [line.strip() for line in file if line.strip()]
+            
+            for i in range(0, len(lines), 8):
+                if i + 7 < len(lines):
+                    member_id = lines[i]
+                    full_name = lines[i+1]
+                    status = lines[i + 7]
+                    member_ids.append(member_id)
+                    
+                    print(f"| {member_id:<16}| {full_name:<23}| {status:<28} |")
+        print("===========================================================================")
+        
+        while True:
+            chosen_id = input("\nEnter Member ID to change status (or 'C' to cancel): ").strip().upper()
+            if chosen_id == 'C':
+                print("\nOperation cancelled.")
+                input("Press [ENTER] to continue. ")
+                return
+            
+            if chosen_id not in member_ids:
+                print(f"\nError: Member ID '{chosen_id}' not found. Please try again.")
+                print("Available Member ID:", ", ".join(member_ids))
+                continue
+            
+            break
+        print("___________________________________________________________________________")
+
+        members = []
+        with open(MEMBERS_FILE, 'r') as file:
+            content = file.read()
+            member_blocks = content.split("\n\n")
+            
+            for block in member_blocks:
+                if block.strip():
+                    lines = block.splitlines()
+                    if len(lines) >= 8:
+                        members.append(lines)
+                    
+        updated = False
+        for member_data in members:
+            if member_data[0] == chosen_id:
+                current_status = member_data[7] if len(member_data) > 7 else "Active"
+                new_status = "Inactive" if current_status == "Active" else "Active"
+                member_data[7] = new_status
+                updated = True
+                break
+            
+        if updated:
+            with open(MEMBERS_FILE, 'w') as file:
+                for member_data in members:
+                    file.write("\n".join(member_data) + "\n\n")
+                 
+            print(f"\nMember {chosen_id} status changed to {new_status} successfully.")
+        else:
+            print("Member not found.")
+        
+        print("\n===========================================================================")
+            
+        input("Press [ENTER] to continue.")
+        
+    except FileNotFoundError:
+        print("Member file not found.")
+        input("Press [ENTER] to continue.")
+        
+# ===================================END OF MANAGE MEMBER LIST===================================
 
 #------------------------------------------------------------Member main menu function------------------------------------------------
 def main_menu():
