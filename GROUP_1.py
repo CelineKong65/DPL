@@ -2568,6 +2568,84 @@ def update_product_file():
         print(f"Error: Could not update the product file: {e}")
         return False
 
+# =======================================VIEW SALES REPORT=======================================
+def view_sales_report():
+    category_sales = {}
+    category_count = {}
+    
+    try:
+        products = {}
+        with open(PRODUCT_FILE, 'r') as file:
+            for line in file:
+                line = line.strip()
+                if line:
+                    parts = line.split(',')
+                    if len(parts) >= 3:
+                        product_id = parts[0]
+                        name = parts[1]
+                        category = parts[2]
+                        products[product_id] = (name, category)
+        
+        with open(PURCHASE_HISTORY_FILE, 'r') as file:
+            content = file.read()
+            records = content.split('\n\n')
+
+            for record in records:
+                if not record.strip():
+                    continue
+                
+                lines = record.split("\n")
+                if len(lines) < 2:
+                    continue
+                
+                for line in lines[1:-1]:
+                    parts = line.split(',')
+                    if len(parts) >= 9:
+                        product_id = parts[3]
+                        quantity = int(parts[7]) if parts[7].isdigit else 0
+                        total = float(parts[8]) if parts[8].isdigit else 0
+                        
+                        if product_id in products:
+                            category = products[product_id][1]
+                            if category not in category_sales:
+                                category_sales[category] = 0.0
+                                category_count[category] = 0
+                            category_sales[category] += total
+                            category_count[category] += quantity
+                            
+        clear_screen()
+        print("===========================================================================")
+        print("|                             SALES REPORT                                |")
+        print("===========================================================================")
+        
+        if not category_sales:
+            print("No sales data available.")
+        else:
+            sorted_category = []
+            for category in category_sales:
+                inserted = False
+                for i in range(len(sorted_category)):
+                    if category_sales[category] > category_sales[sorted_category[i]]:
+                        sorted_category.insert(i, category)
+                        inserted = True
+                        break
+                if not inserted:
+                    sorted_category.append(category)
+                    
+            for category in sorted_category:
+                print(f"| Category: {category:<62}|")
+                print(f"| Items Sold: {category_count[category]:<60}|")
+                print(f"| Total Sales: RM {category_sales[category]:<56.2f}|")
+                print("---------------------------------------------------------------------------")
+            
+        print("===========================================================================")
+        input("\nPress [ENTER] to return to admin menu.")
+        
+    except FileNotFoundError:
+        print("Required data files not found.")
+        input("Press [ENTER] to continue.")
+# ====================================END OF VIEW SALES REPORT===================================
+
 #------------------------------------------------------------Member main menu function------------------------------------------------
 def main_menu():
     global logged_in_member
