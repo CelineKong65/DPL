@@ -93,75 +93,78 @@ def custom_chr(code):
 
 def bubble_sort(arr, key=None, reverse=False):
     n = len(arr)
-    for i in range(n-1):
+    for i in range(n - 1):
         swapped = False
-        for j in range(0, n-i-1):
-            # Get values to compare
+        for j in range(0, n - i - 1):
             if key:
-                a = getattr(arr[j], key) if hasattr(arr[j], key) else arr[j]
-                b = getattr(arr[j+1], key) if hasattr(arr[j+1], key) else arr[j+1]
+                # Access attribute manually without getattr()
+                a = arr[j].__dict__[key] if isinstance(arr[j], object) and key in arr[j].__dict__ else arr[j]
+                b = arr[j + 1].__dict__[key] if isinstance(arr[j + 1], object) and key in arr[j + 1].__dict__ else arr[j + 1]
             else:
                 a = arr[j]
-                b = arr[j+1]
-            
-            # Compare based on reverse flag
-            if (a > b) if not reverse else (a < b):
-                arr[j], arr[j+1] = arr[j+1], arr[j]
+                b = arr[j + 1]
+
+            if (a > b and not reverse) or (a < b and reverse):
+                arr[j], arr[j + 1] = arr[j + 1], arr[j]
                 swapped = True
         if not swapped:
             break
+
+
+#Jump Search here
+def min_val(a, b):
+    return a if a < b else b
 
 def jump_search(arr, target, key=None):
     n = len(arr)
     if n == 0:
         return None
-    
-    # Calculate jump size
-    step = int(n ** 0.5)
-    
-    # Find the block where target be present
+
+    # Calculate jump step
+    step = 1
+    while step * step < n:
+        step += 1
+
     prev = 0
     while True:
+        index = step - 1
+        if index >= n:
+            index = n - 1
+
         if key:
-            current_val = getattr(arr[min(step, n)-1], key) if hasattr(arr[min(step, n)-1], key) else None
+            current_val = arr[index].__dict__[key] if isinstance(arr[index], object) and key in arr[index].__dict__ else None
         else:
-            current_val = arr[min(step, n)-1]
-            
+            current_val = arr[index]
+
         if current_val is None:
             return None
-        
+
         if current_val < target:
             prev = step
-            step += int(n ** 0.5)
+            step += 1
             if prev >= n:
                 return None
-        
         else:
             break
-        
-    # Perform Linear search in the indentified block
-    if key:
-        while getattr(arr[prev], key) < target:
-            prev += 1
-            if prev == min(step, n):
-                return None
-            
-    else:
-        while arr[prev] < target:
-            prev += 1
-            if prev == min(step, n):
-                return None
-            
-    # Check if found the target
-    if key:
-        if getattr(arr[prev], key) == target:
+
+    end = step
+    if end > n:
+        end = n
+
+    while prev < end:
+        if key:
+            val = arr[prev].__dict__[key] if isinstance(arr[prev], object) and key in arr[prev].__dict__ else None
+        else:
+            val = arr[prev]
+
+        if val == target:
             return arr[prev]
-        
-    else:
-        if arr[prev] == target:
-            return arr[prev]
-        
-    return None 
+        elif val > target:
+            return None
+
+        prev += 1
+
+    return None
 
 def load_members():
     global members
@@ -2425,6 +2428,171 @@ def purchase_history(cart, total_payment, payment_method):
     except Exception as e:
         print(f"Error recording purchase history: {e}")
         return False
+    
+def view_purchase_history():
+    global logged_in_member
+
+    if not logged_in_member:
+        print("No member logged in to view purchase history.")
+        input("Press [ENTER] to continue.")
+        return
+
+    try:
+        clear_screen()
+        print("===========================================================================")
+        print("|                          YOUR PURCHASE HISTORY                          |")
+        print("===========================================================================")
+
+        if not os.path.exists(PURCHASE_HISTORY_FILE):
+            with open(PURCHASE_HISTORY_FILE, "w", encoding="utf-8") as file:
+                pass  
+
+        with open(PURCHASE_HISTORY_FILE, "r", encoding="utf-8") as file:
+            content = file.read()
+
+        if not content.strip():
+            print("|                                                                         |")
+            print("|                         No purchase history found.                      |")
+            print("|                                                                         |")
+            print("===========================================================================")
+            input("\nPress [ENTER] to continue.")
+            return
+
+        from datetime import datetime
+        records = content.strip().split("\n\n")
+        user_records = []
+
+        for record in records:
+            if not record.strip():
+                continue
+
+            lines = record.strip().split("\n")
+            if len(lines) < 2:
+                continue
+
+            header = lines[0].split(',')
+            if len(header) < 5:
+                continue
+
+            member_id = header[0]
+            if member_id != logged_in_member.member_id:
+                continue
+
+            try:
+                order_id = header[2]
+                purchase_time = header[3]
+                payment_method = header[4]
+
+                total_line = lines[-1].split(',')
+                total_payment = float(total_line[4]) if len(total_line) >= 5 and total_line[3] == "TOTAL" else 0.0
+
+                user_records.append({
+                    "lines": lines,
+                    "datetime": purchase_time,
+                    "datetime_obj": datetime.strptime(purchase_time, "%Y-%m-%d %H:%M:%S"),
+                    "total": total_payment,
+                    "order_id": order_id,
+                    "payment_method": payment_method
+                })
+
+            except Exception as e:
+                print(f"Error processing record: {e}")
+                continue
+
+        if not user_records:    
+            print("|                                                                         |")
+            print("|               No purchase history found for your account.               |")
+            print("|                                                                         |")
+            print("===========================================================================")
+            input("\nPress [ENTER] to return to main menu.")
+            clear_screen()
+            main_menu()
+            return
+        
+        print("| How would you like to sort your purchase history?                       |")
+        print(f"| {'1. By Date/Time (Latest First)':<72}|")
+        print(f"| {'2. By Total Purchase Amount (Highest First)':<72}|")
+        print(f"| {'3. Back To Main Menu':<72}|")
+        print("===========================================================================")
+
+        while True:
+            choice = input("\nEnter your choice: ")
+            try:
+                choice = int(choice)  
+                if choice == 3:
+                    clear_screen()
+                    main_menu()
+                    return
+                elif choice in (1, 2):
+                    # Bubble sort implementation
+                    n = len(user_records)
+                    for i in range(n-1):
+                        swapped = False
+                        for j in range(0, n-i-1):
+                            if choice == 1:  # Sort by datetime
+                                compare = user_records[j]["datetime_obj"] < user_records[j+1]["datetime_obj"]
+                            else:  # Sort by total
+                                compare = user_records[j]["total"] < user_records[j+1]["total"]
+                            
+                            if compare:
+                                # Swap the elements
+                                user_records[j], user_records[j+1] = user_records[j+1], user_records[j]
+                                swapped = True
+                        if not swapped:
+                            break
+                    break
+                else:
+                    print("Invalid choice. Please try again.")
+            except ValueError:
+                print("Invalid choice. Please try again.")
+
+        clear_screen()
+
+        print("===========================================================================")
+        print("|                           YOUR PURCHASE HISTORY                         |")
+        for record in user_records:
+            print("===========================================================================")
+            print(f"| Purchase Time : {record['datetime']:<56}|")
+            print(f"| Payment Method: {record['payment_method']:<56}|")
+            print("===========================================================================")
+
+            for line in record["lines"][1:-1]:
+                parts = line.split(',')
+                if len(parts) < 9:
+                    continue
+
+                product_id = parts[3]
+                name = parts[4]
+                category = parts[5]
+                price = float(parts[6])
+                quantity = int(parts[7])
+                total = float(parts[8])
+
+                print("---------------------------------------------------------------------------")
+                print(f"| Product ID : {product_id:<59}|")
+                print(f"| Name       : {name:<59}|")
+                print(f"| Category   : {category:<59}|")
+                print(f"| Price      : RM {price:<56.2f}|")
+                print(f"| Quantity   : {quantity:<59}|")
+                print(f"| Total      : RM {total:<56.2f}|")
+
+            print("===========================================================================")
+            print(f"| Total Purchase: RM {record['total']:<53.2f}|")
+            print("===========================================================================\n")
+
+        input("\nPress [ENTER] to return.")
+        clear_screen()
+        view_purchase_history()
+
+    except FileNotFoundError:
+        print("Purchase history file not found. Creating a new one.")
+        open(PURCHASE_HISTORY_FILE, "w", encoding="utf-8").close()
+        input("Press [ENTER] to continue.")
+        clear_screen()
+        main_menu()
+    except Exception as e:
+        print(f"Error viewing purchase history: {str(e)}")
+        input("Press [ENTER] to continue.")
 
 def get_order_id():
     try:
@@ -2933,6 +3101,7 @@ def main_menu():
         print(" [1] Browse Products")
         print(" [2] View My Cart")
         print(" [3] My Profile")
+        print(" [4] Purchase History")
         print(" [4] Rate Our System")
         print(" [5] Log Out")
         print("===============================================================")
@@ -2947,8 +3116,10 @@ def main_menu():
         elif choice == '3':
             member_profile()
         elif choice == '4':
-            feedback_rating()
+            view_purchase_history()
         elif choice == '5':
+            feedback_rating()
+        elif choice == '6':
             input("\nPress [ENTER] to logout.")
             clear_screen()
             return login_menu()
