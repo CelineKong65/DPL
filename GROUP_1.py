@@ -1373,7 +1373,6 @@ def admin_menu():
         print("| [9] Log Out                                                             |")
         print("===========================================================================")
 
-
         choice = input("Enter your choice: ")
 
         if choice == '1':
@@ -1381,14 +1380,14 @@ def admin_menu():
         elif choice == '2':
             manage_member()
         elif choice == '3':
-            return
+            manage_admin()
         elif choice == '4':
             view_feedback_rating()
             return
         elif choice == '5':
-            return
+            view_dashboard()
         elif choice == '6':
-            return
+            view_order_history()
         elif choice == '7':
             view_sales_report()
         elif choice == '8':
@@ -1400,7 +1399,7 @@ def admin_menu():
         else:
             input("\nInvalid choice. Press [ENTER] to try again.")
             clear_screen()
-
+            
 def feedback_rating():
     if not logged_in_member:
         print("Error: No user logged in.")
@@ -2892,6 +2891,317 @@ def update_product_file():
         print(f"Error: Could not update the product file: {e}")
         return False
 
+# ==========================================VIEW DASHBOARD==========================================
+def view_dashboard():
+    product_count = 0
+    active_product = 0
+    inactive_product = 0
+    out_of_stock = 0
+    
+    try:
+        with open(PRODUCT_FILE, 'r') as file:
+            for line in file:
+                line = line.strip()
+                if line:
+                    product_count += 1
+                    parts = line.split(',')
+                    if len(parts) >= 6:
+                        stock = int(parts[4]) if parts[4].isdigit() else 0       
+                        status = parts[5]
+                        if status == "Active":
+                            active_product += 1
+                            if stock <= 0:
+                                out_of_stock += 1
+                        else: 
+                            inactive_product += 1
+    
+    except FileNotFoundError:
+        pass
+    
+    member_count = 0
+    active_member = 0
+    inactive_member = 0
+    
+    try:
+        with open (MEMBERS_FILE, 'r') as file:
+            lines = []
+            for line in file:
+                line = line.strip()
+                if line:
+                    lines.append(line)
+                    
+            member_count = len(lines) // 8
+            for i in range(0, len(lines), 8):
+                if i + 7 < len(lines) and lines[i+7] == "Active":
+                    active_member += 1
+                else :
+                    inactive_member += 1
+    except FileNotFoundError:
+        pass
+    
+    order_count = 0
+    total_sales = 0.0
+    monthly_sale = {"01": 0.0, "02": 0.0, "03": 0.0, "04": 0.0, "05": 0.0, "06": 0.0, "07": 0.0, "08": 0.0, "09": 0.0, "10": 0.0, "11": 0.0, "12": 0.0, }
+    month_name = {"01":"January", "02":"February", "03":"March", "04":"April", "05":"May", "06":"June", "07":"July", "08":"August", "09":"September" ,"10":"October" ,"11":"November", "12":"December"}
+    
+    try:
+        with open(PURCHASE_HISTORY_FILE, 'r') as file:
+            content = file.read()
+            records = content.split("\n\n")
+            for record in records:
+                if not record.strip():
+                    continue
+                lines = record.strip().split("\n")
+                if len(lines) < 2:
+                    continue
+
+                date_line = lines[0].split(",")
+                if len(date_line) >= 4:
+                    date_part = date_line[3].strip()
+                    if len(date_part) >= 7 and date_part[5:7] in monthly_sale:
+                        order_month = date_part[5:7]
+                    else:
+                        order_month = None
+                else:
+                    order_month = None
+
+                for line in lines:
+                    parts = line.split(",")
+                    if len(parts) >= 5 and parts[3] == "TOTAL":
+                        try:
+                            total = float(parts[4])
+                            total_sales += total
+                            if order_month:
+                                monthly_sale[order_month] += total
+                            order_count += 1
+                        except:
+                            pass        
+    except FileNotFoundError:
+        pass
+    
+    clear_screen()
+    print("===========================================================================")
+    print("|                             ADMIN DASHBOARD                             |")
+    print("===========================================================================")
+    print("|                                                                         |")
+    print(f"| Total Products               : {product_count:<41}|")
+    print(f"| Active Products              : {active_product:<41}|")
+    print(f"| Inactive Products            : {inactive_product:<41}|")
+    print(f"| Out of Stock                 : {out_of_stock:<41}|")
+    print("|_________________________________________________________________________|")
+    print("|                                                                         |")
+    print(f"| Total Members                : {member_count:<41}|")
+    print(f"| Active Members               : {active_member:<41}|")
+    print(f"| Inactive Members             : {inactive_member:<41}|")
+    print("|_________________________________________________________________________|")
+    print("|                                                                         |")
+    print(f"| Total Orders                 : {order_count:<41}|")
+    print(f"| Total Sales                  : RM {total_sales:<38.2f}|")
+    print("|_________________________________________________________________________|")
+    print("|                                                                         |")
+    print("| Monthly Sales Report                                                    |")
+    print("|                                                                         |")
+    for key in sorted(month_name.keys()):
+        name = month_name[key]
+        sale = monthly_sale[key]
+        print(f"| {name:<71} |")
+        print(f"| Sales for this month         : RM {sale:<38.2f}|")
+        print("|                                                                         |")
+    
+    print("===========================================================================")
+    input("\nPress [ENTER] to return to admin menu.")
+# =======================================END OF VIEW DASHBOARD=======================================
+
+# ===================================VIEW ORDER HISTORY===================================
+def view_order_history():
+    try:
+        member_ids = []
+        order_ids = []
+        with open(PURCHASE_HISTORY_FILE, "r") as file:
+            content = file.read()
+            records = content.split("\n\n")
+            
+            for record in records:
+                if not record.strip():
+                    continue
+                
+                lines = record.split("\n")
+                if len(lines) >= 1:
+                    header = lines[0].split(',')
+                    if len(header) >= 3:
+                        if header[0] not in member_ids:
+                            member_ids.append(header[0])
+                        if header[2] not in order_ids:
+                            order_ids.append(header[2])
+        
+        bubble_sort(member_ids)
+        bubble_sort(order_ids)
+        
+        clear_screen()
+        print("===========================================================================")
+        print("|                    AVAILABLE MEMEBR ID WITH ORDERS                      |")
+        print("===========================================================================")
+        for member_id in member_ids:
+            print(f"| ⨠ {member_id:<70}|")
+        print("|_________________________________________________________________________|")
+        
+        search_id = None
+        while True:
+            search_input = input("| Enter Member ID to filter (or press ENTER for all): ").strip().upper()
+            
+            if not search_input:
+                break
+                
+            found_member = jump_search(member_ids, search_input)
+            
+            if found_member:
+                search_id = found_member
+                break
+            else:
+                print(f"\nMember ID {search_input} not found in order history.")
+                print("Available Member IDs:")
+                for member_id in member_ids:
+                    print(f"⨠ {member_id}")
+                continue
+        
+        search_order_id = None
+        if search_id:
+            member_order_ids = []
+            with open(PURCHASE_HISTORY_FILE, "r") as file:
+                content = file.read()
+                records = content.split("\n\n")
+                
+                for record in records:
+                    if not record.strip():
+                        continue
+                    
+                    lines = record.split("\n")
+                    if len(lines) >= 1:
+                        header = lines[0].split(',')
+                        if len(header) >= 3 and header[0] == search_id:
+                            member_order_ids.append(header[2])
+            
+            if member_order_ids:
+                print(" _________________________________________________________________________")
+                print("|                                                                         |")
+                print(f"| Available Order IDs for {search_id:<48}|")
+                for order_id in member_order_ids:
+                    print(f"| ⨠ {order_id:<70}|")
+                print("|_________________________________________________________________________|")
+                
+                while True:
+                    order_input = input("| Enter Order ID to view order (or press ENTER for all): ").strip().upper()
+                    
+                    if not order_input:
+                        break
+                        
+                    if order_input in member_order_ids:
+                        search_order_id = order_input
+                        break
+                    else:
+                        print(f"\nOrder ID {order_input} not found for this member.")
+                        print("Available Order IDs:")
+                        for order_id in member_order_ids:
+                            print(f"⨠ {order_id}")
+                        continue
+        
+        with open(PURCHASE_HISTORY_FILE, "r") as file:
+            content = file.read()
+            
+        if not content:
+            print("\nNo purchase history found.")
+            input("\nPress [ENTER] to continue")
+            return
+        
+        records = content.split("\n\n")
+        found_orders = False
+        
+        for record in records:
+            if not record.strip():
+                continue
+            
+            lines = record.split("\n")
+            if len(lines) < 2:
+                continue
+            
+            header = lines[0].split(',')
+            if len(header) < 5:
+                continue
+            
+            member_id = header[0]
+            order_id = header[2]
+            
+            if search_id and member_id != search_id:
+                continue
+                
+            if search_order_id and order_id != search_order_id:
+                continue
+                
+            found_orders = True
+            member_name = header[1]
+            purchase_time = header[3]
+            payment_method = header[4]
+            
+            print("\n _________________________________________________________________________")
+            print("|                                                                         |")
+            print(f"| Member ID       : {member_id:<54}|")
+            print("|_________________________________________________________________________|")
+            print(f"| Name            : {member_name:<54}|")
+            print(f"| Order ID        : {order_id:<54}|")
+            print(f"| Date n Time     : {purchase_time:<54}|")
+            print(f"| Payment         : {payment_method:<54}|")
+            print("|_________________________________________________________________________|")
+            
+            total_payment = 0.0
+            has_discount = False
+            
+            for line in lines[1:-1]:
+                parts = line.split(',')
+                if len(parts) < 9:
+                    continue
+                
+                product_id   = parts[3]
+                product_name = parts[4]
+                category     = parts[5]
+                price        = parts[6]
+                quantity     = parts[7]
+                total        = parts[8]
+                
+                print(f"| Product ID      : {product_id:<54}|")
+                print(f"| Product Name    : {product_name:<54}|")
+                print(f"| Category        : {category:<54}|")
+                print(f"| Price           : RM {price:<51}|")
+                print(f"| Quantity        : {quantity:<54}|")
+                print(f"| Total           : RM {total:<51}|")
+                print(" -------------------------------------------------------------------------")
+                
+                total_payment += float(total) if total.replace('.','',1).isdigit() else 0.0
+                
+                if float(total) > 120.00:
+                    has_discount = True
+            
+            total_line = lines[-1].split(',')
+            if len(total_line) >= 5 and total_line[3] == "TOTAL":
+                total_payment = float(total_line[4])
+            
+            if has_discount:
+                print(f"| {'Total Purchase: RM ' + f'{total_payment:.2f}' + ' [after 5% discount]':<72}|")
+            else:
+                print(f"| Total Purchase: RM {total_payment:<53.2f}|")
+            print("===========================================================================")
+        if (search_id or search_order_id) and not found_orders:
+            if search_order_id:
+                print(f"\nNo orders found with Order ID: {search_order_id}")
+            else:
+                print(f"\nNo orders found for Member ID: {search_id}")
+            
+        input("\nPress [ENTER] to return to admin menu.")
+        
+    except FileNotFoundError:
+        print("\nOrder history file not found.")
+        input("Press [ENTER] to continue")
+# ===================================END OF VIEW ORDER HISTORY===================================
+
 # =======================================VIEW SALES REPORT=======================================
 def view_sales_report():
     category_sales = {}
@@ -3174,6 +3484,306 @@ def change_member_status():
         input("Press [ENTER] to continue.")
         
 # ===================================END OF MANAGE MEMBER LIST===================================
+
+# ========================================VIEW ADMIN LIST========================================
+def manage_admin():
+    global logged_in_admin
+    
+    while True:
+        clear_screen()
+        print("===========================================================================")
+        print("|                              MANAGE ADMIN LIST                          |")
+        print("===========================================================================")
+        print("| [1] View Active Admins                                                  |")
+        print("| [2] View Inactive Admins                                                |")
+        
+        if logged_in_admin.position == "superadmin":
+            print("| [3] Add New Admin                                                       |")
+            print("| [4] Change Admin Status                                                 |")
+            print("| [5] Return to Admin Menu                                                |")
+            max_choice = '5'
+        else: 
+            print("| [3] Return to Admin Menu                                                |")
+            max_choice = '3'
+        print("===========================================================================")
+        
+        choice = input("Enter yout choice: ")
+        if choice == '1':
+            view_admin_list("Active")
+        elif choice == '2':
+            view_admin_list("Inactive")
+        elif choice == '3' and logged_in_admin.position == "superadmin":
+            add_new_admin()
+        elif choice == '4' and logged_in_admin.position == "superadmin":
+            change_admin_status()
+        elif (choice == '3' and logged_in_admin.position != "superadmin") or (choice == '5' and logged_in_admin.position == "superadmin"):
+            return
+        else:
+            input("Invalid choice, Press [ENTER] to try again.")
+            
+def view_admin_list(status_filter):
+    try:
+        admins = []
+        with open(ADMINS_FILE, 'r') as file:
+            lines = []
+            for line in file:
+                line = line.strip()
+                if line:
+                    lines.append(line)
+                    
+            for i in range(0, len(lines), 5):
+                if i + 4 < len(lines):
+                    admin = Admin(
+                        name=lines[i],
+                        password=lines[i+1],
+                        contact=lines[i+2],
+                        position=lines[i+3],
+                        status=lines[i+4]                        
+                    )
+                    admins.append(admin)
+                    
+        filtered_admins = []
+        for a in admins:
+            if a.status == status_filter:
+                filtered_admins.append(a)    
+                
+                    
+        clear_screen()
+        if status_filter == "Active":
+            print("===========================================================================")
+            print("|                             ACTIVE ADMIN LIST                           |")
+        elif status_filter == "Inactive":
+            print("===========================================================================")
+            print("|                            INACTIVE ADMIN LIST                          |")        
+        print("===========================================================================")
+        
+        if not filtered_admins:
+            print("|                                                                         | ")
+            print(f"|                      No {status_filter.lower()+' admins found.':<48}|")
+            print("|                                                                         | ")
+            print("---------------------------------------------------------------------------")
+        else:
+            for admin in filtered_admins:
+                print(f"| Name              : {admin.name:<52}|")    
+                print(f"| Position          : {admin.position:<52}|")    
+                print(f"| Contact           : {admin.contact:<52}|")  
+                print("---------------------------------------------------------------------------")
+
+            search_choice = input("\nDo you want to search admin by name? (Y/N): ").upper()
+            if search_choice == 'Y':
+                bubble_sort(filtered_admins, key='name')
+                
+                search_name = input("\nEnter Admin Name to search: ").strip()
+                found_admin = jump_search(filtered_admins, search_name, key='name')
+                
+                if found_admin:
+                    clear_screen()
+                    print("===========================================================================")
+                    print("|                               ADMIN DETAILS                             |")
+                    print("===========================================================================")
+                    print(f"| Name              : {found_admin.name:<52}|")
+                    print(f"| Position          : {found_admin.position:<52}|")
+                    print(f"| Contact           : {found_admin.contact:<52}|")
+                    print(f"| Status            : {found_admin.status:<52}|")
+                    print("===========================================================================")
+                else:
+                    print(f"Admin with name '{search_name}' not found in {status_filter.lower()} admins.")
+                input("\nPress [ENTER] to continue.")
+                return
+        input("\nPress [ENTER] to continue")
+    except FileNotFoundError:
+        print("Admin file not found.")
+        input("Press [ENTER] to continue.") 
+
+def add_new_admin():       
+    clear_screen()
+    print("===========================================================================")
+    print("|                            ADD NEW ADMIN                                |")
+    print("===========================================================================")
+    print("| Requirment:                                                             |")
+    print("| -> Name cannot be same                                                  |")
+    print("| -> Password need at least 8 chars                                       |")
+    print("| -> Password need one uppercase, lowercase, number                       |")
+    print("| -> Contact format: 012-3456789 or 012-34567890                          |")
+    print("===========================================================================")
+    
+    while True:
+        name = input("Enter admin name (or 'C' to cancel): ").strip()
+        if name.upper() == 'C':
+            print("\nOperation cancelled.")
+            input("Press [ENTER] to continue.")
+            return
+        
+        if not name:
+            print("Name cannot be empty.")
+            continue
+        
+        try:
+            with open(ADMINS_FILE, 'r') as file:
+                content = file.read()
+                if f"\n{name}\n" in content or content.startswith(name + "\n"):
+                    print("Name already exists.")
+                    continue
+        except FileNotFoundError:
+            pass
+        
+        break
+    
+    while True:
+        password = input("\nEnter password: ").strip()
+        if len(password) < 8:
+            print("Password must be at least 8 characters.")
+            continue
+        
+        upper = False
+        lower = False
+        digit = False
+        
+        for char in password:
+            if 'A' <= char <= 'Z':
+                upper = True
+            elif 'a' <= char < 'z':
+                lower = True
+            elif '0' <= char <= '9':
+                digit = True 
+                
+        if not (upper and lower and digit):
+              print("Password must contain at least one uppercase letter, one lowercase letter, and one number.")
+              continue
+          
+        confirm = input("\nConfirm password: ").strip()
+        if password != confirm:
+            print("Password doesn't match.")
+            continue
+        
+        break
+    
+    while True:
+        contact = input("\nEnter contact number: ").strip()
+        if len(contact) < 4 or contact[3] != '-':
+            print("Format must be like 012-3456789 with a '-' .")
+            continue
+        
+        part1 = contact[:3]
+        part2 = contact[4:]
+        
+        if not (part1[0] == '0' and part1[1] == '1'):
+            print("Phone number must start with '01'.")
+            continue
+        
+        valid = True
+        for c in part1 + part2:
+            if not ('0' <= c <= '9'):
+                valid = False
+                break
+        
+        if not valid:
+            print("Phone number can only contain digits and dash.")
+            continue
+        
+        if len(part1 + part2) not in [10, 11]:
+            print("Phone number must be 10 or 11 digits total.")
+            continue
+        
+        break        
+
+    position = "admin"
+    status = "Active"
+    
+    try:
+        with open(ADMINS_FILE, 'a') as file:
+            file.write(f"\n\n{name}\n{password}\n{contact}\n{position}\n{status}")
+            
+            print(f"\nAdmin {name} added successfully!\n")
+            input("Press [ENTER] to continue. ")
+    except Exception as e:
+        print(f"Error addinf admin: {e}")
+        input("Press [ENTER] to continue. ")
+            
+            
+def change_admin_status():
+    global logged_in_admin
+    
+    try:
+        clear_screen()
+        print("===========================================================================")
+        print("|                               ADMIN LIST                                |")
+        print("===========================================================================")
+        print("| Name                  | Position              | Status                  |")
+        print("===========================================================================")
+        
+        admin_names = []
+        admin_details = []
+        with open(ADMINS_FILE, 'r') as file:
+            lines = [line.strip() for line in file if line.strip()]
+            
+            for i in range(0, len(lines), 5):
+                if i + 4 < len(lines):
+                    name = lines[i]
+                    position = lines[i+3]
+                    status = lines[i+4]
+                    admin_names.append((name))
+                    admin_details.append((name, position, status))
+                    print(f"| {name:<22}| {position:<22}| {status:<24}|")
+        
+        print("===========================================================================")
+        
+        while True:
+            name = input("| Enter admin name to change status (or 'C' to cancel): ").strip()
+            
+            if name.upper() == 'C':
+                print("\nOperation cancelled")
+                input("Press [ENTER] to continue. ")
+                return
+            
+            if name == logged_in_admin.name and logged_in_admin.position == "superadmin":
+                print("ERROR: Superadmin cannot change their own status.")
+                input("Press [ENTER] to continue. ")
+                return
+            
+            if name not in admin_names:
+                print(f"\nError: Admin '{name}' not found. Please try again.")
+                print("Available Admin Names: ",",".join(admin_names))
+                continue
+            
+            break
+        
+        print("===========================================================================")
+        
+        current_status = ""
+        new_status = ""
+        for admin in admin_details:
+            if admin[0] == name:
+                current_status = admin[2]
+                new_status = "Inactive" if current_status == "Active" else "Active"
+                break
+        
+        with open(ADMINS_FILE, 'r') as file:
+            content = file.read()
+            
+        admins = content.split("\n\n")
+        updated_content = []
+        
+        for admin_block in admins:
+            if admin_block.strip():
+                admin_data = admin_block.splitlines()
+                if len(admin_data) >= 5 and admin_data[0] == name:
+                    admin_data[4] = new_status
+                    updated_content.append("\n".join(admin_data))
+                else:
+                    updated_content.append(admin_block)    
+                
+        with open(ADMINS_FILE, 'w') as file:
+            file.write("\n\n".join(updated_content))
+        
+        print(f"Admin '{name}' status changed from {current_status} to {new_status} successfully. ")
+        input("Press [ENTER] to continue. ")
+        
+    except FileNotFoundError:
+        print("Admin file not found.")
+        input("Press [ENTER] to continue.")                
+# ====================================END OF VIEW ADMIN LIST=====================================
+
 
 #------------------------------------------------------------Member main menu function------------------------------------------------
 def main_menu():
