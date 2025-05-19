@@ -1902,6 +1902,111 @@ def filter_products():
                     print("Invalid input. Please enter a number.")
 
 #------------------------------------------------------------Member add to cart function------------------------------------------------
+def display_cart(cart):
+    if not logged_in_member:
+        print("Error: No user logged in.")
+        input("Press [ENTER] to continue.")
+        return
+
+    clear_screen()
+
+    if not load_cart(cart):
+        print("Could not load cart data.")
+        input("Press [ENTER] to return.")
+        return
+
+    if not cart:
+        print("===========================================================================")
+        print("|                                  MY CART                                |")
+        print("===========================================================================")
+        print("|                                                                         |")
+        print("|                             Your cart is empty.                         |")
+        print("|                                                                         |")
+        print("===========================================================================")
+        print("\n1. Return to product list")
+        print("2. Return to main menu")
+
+        while True:
+            choice = input("\nEnter your choice: ")
+            if choice == '1':
+                clear_screen()
+                filter_products()
+                return
+            elif choice == '2':
+                clear_screen()
+                main_menu()
+                return
+            else:
+                print("Invalid choice. Please enter 1 or 2.")
+
+    print("===========================================================================")
+    print("|                                 MY CART                                 |")
+    print("===========================================================================")
+    grand_total = 0.0
+
+    for i, item in enumerate(cart, 1):
+        pid = item.product_id if item.product_id else (item.product.product_id if item.product else "N/A")
+        name = item.name if item.name else (item.product.name if item.product else "N/A")
+        category = item.product.category if item.product and item.product.category else "N/A"
+        price = item.price if item.price is not None else (item.product.price if item.product else 0.0)
+        quantity = item.quantity
+        total = item.total if item.total is not None else (price * quantity)
+        status = item.product.status if item.product and item.product.status else "N/A"
+
+        print(" -------------------------------------------------------------------------")
+        print(f"| Item {str(i) + ':':<67}|")
+        print(f"| Product ID : {pid:<59}|")
+        print(f"| Name       : {name:<59}|")
+
+        if status=="Inactive":
+            total=0.0
+            print("| SORRY! This product is currently unavailable :(                         |")
+            print(" -------------------------------------------------------------------------")
+        else:
+            print(f"| Category   : {category:<59}|")
+            print(f"| Price      : RM {price:<56.2f}|")
+            print(f"| Quantity   : {quantity:<59}|")
+            print(f"| Total      : RM {total:<56.2f}|")
+            print(" -------------------------------------------------------------------------")
+        grand_total += total
+    print("===========================================================================")
+    print(f"| Total Price: RM {grand_total:<56.2f}|")
+    print("===========================================================================\n")
+
+    print(" ____________________________________")
+    print("|                                    |")
+    print("|    Options:                        |")
+    print("|  1. Delete an item from cart       |")
+    print("|  2. Edit quantity of an item       |")
+    print("|  3. Proceed to payment             |")
+    print("|  4. Back to product list           |")
+    print("|  5. Back to main menu              |")
+    print("|____________________________________|")
+
+    while True:
+        choice = input("\nEnter your choice: ")
+        if choice == '1':
+            delete_cart(cart)
+            break
+        elif choice == '2':
+            edit_cart(cart)
+            break
+        elif choice == '3':
+            proceed_to_payment(products,cart)
+            break
+        elif choice == '4':
+            clear_screen()
+            filter_products()
+            return
+        elif choice == '5':
+            clear_screen()
+            main_menu()
+            return
+        else:
+            print("Invalid choice. Please try again.")
+
+    display_cart(cart)
+    
 def add_to_cart(cart, product_id, quantity):
     if not logged_in_member:
         print("Error: Cannot add to cart. No user logged in.")
