@@ -3249,15 +3249,15 @@ def view_order_history():
         order_ids = []
         with open(PURCHASE_HISTORY_FILE, "r") as file:
             content = file.read()
-            records = content.split("\n\n")
+            records = my_split(content.strip(), delimiter = "\n\n")
             
             for record in records:
                 if not record.strip():
                     continue
                 
-                lines = record.split("\n")
+                lines = my_split(record, '\n')
                 if len(lines) >= 1:
-                    header = lines[0].split(',')
+                    header = my_split(lines[0], ',')
                     if len(header) >= 3:
                         if header[0] not in member_ids:
                             member_ids.append(header[0])
@@ -3277,7 +3277,7 @@ def view_order_history():
         
         search_id = None
         while True:
-            search_input = input("| Enter Member ID to filter (or press ENTER for all): ").strip().upper()
+            search_input = input("Enter Member ID to filter (or press ENTER for all): ").strip().upper()
             
             if not search_input:
                 break
@@ -3289,9 +3289,11 @@ def view_order_history():
                 break
             else:
                 print(f"\nMember ID {search_input} not found in order history.")
-                print("Available Member IDs:")
+                print("___________________________________________________________________________")
+                print("| Available Member IDs:                                                   |")
                 for member_id in member_ids:
-                    print(f"⨠ {member_id}")
+                    print(f"| ⨠ {member_id:<70}|")
+                print("|_________________________________________________________________________|")
                 continue
         
         search_order_id = None
@@ -3299,15 +3301,15 @@ def view_order_history():
             member_order_ids = []
             with open(PURCHASE_HISTORY_FILE, "r") as file:
                 content = file.read()
-                records = content.split("\n\n")
+                records = my_split(content.strip(), delimiter="\n\n")
                 
                 for record in records:
                     if not record.strip():
                         continue
                     
-                    lines = record.split("\n")
+                    lines = my_split(record, '\n')
                     if len(lines) >= 1:
-                        header = lines[0].split(',')
+                        header = my_split(lines[0], ',')
                         if len(header) >= 3 and header[0] == search_id:
                             member_order_ids.append(header[2])
             
@@ -3343,18 +3345,18 @@ def view_order_history():
             input("\nPress [ENTER] to continue")
             return
         
-        records = content.split("\n\n")
+        records = my_split(content.strip(), delimiter="\n\n")
         found_orders = False
         
         for record in records:
             if not record.strip():
                 continue
             
-            lines = record.split("\n")
+            lines = my_split(record, '\n')
             if len(lines) < 2:
                 continue
             
-            header = lines[0].split(',')
+            header = my_split(lines[0], ',')
             if len(header) < 5:
                 continue
             
@@ -3386,7 +3388,7 @@ def view_order_history():
             has_discount = False
             
             for line in lines[1:-1]:
-                parts = line.split(',')
+                parts = my_split(line, ',')
                 if len(parts) < 9:
                     continue
                 
@@ -3405,14 +3407,43 @@ def view_order_history():
                 print(f"| Total           : RM {total:<51}|")
                 print(" -------------------------------------------------------------------------")
                 
-                total_payment += float(total) if total.replace('.','',1).isdigit() else 0.0
+                total_float = 0.0
+                is_float = True
+                has_decimal = False
+                for ch in total:
+                    if ch == '.':
+                        if has_decimal:
+                            is_float = False
+                            break
+                        has_decimal = True
+                    elif ch < '0' or ch > '9':
+                        is_float = False
+                        break
+                if is_float:
+                    total_float = float(total)
                 
-                if float(total) > 120.00:
+                total_payment += total_float
+                
+                if total_float > 120.00:
                     has_discount = True
             
-            total_line = lines[-1].split(',')
+            total_line = my_split(lines[-1], ',')
             if len(total_line) >= 5 and total_line[3] == "TOTAL":
-                total_payment = float(total_line[4])
+                total_str = total_line[4]
+                total_payment = 0.0
+                is_float = True
+                has_decimal = False
+                for ch in total_str:
+                    if ch == '.':
+                        if has_decimal:
+                            is_float = False
+                            break
+                        has_decimal = True
+                    elif ch < '0' or ch > '9':
+                        is_float = False
+                        break
+                if is_float:
+                    total_payment = float(total_str)
             
             if has_discount:
                 print(f"| {'Total Purchase: RM ' + f'{total_payment:.2f}' + ' [after 5% discount]':<72}|")
