@@ -1,0 +1,3 @@
+U0002,404,Sugar Donut,2.50,20,50.00
+U0002,601,Oatmeal Raisin Cookie,2.20,10,22.00
+U0002,603,Shortbread,2.50,5,12.50
