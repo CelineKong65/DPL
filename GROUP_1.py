@@ -22,7 +22,7 @@ class Member:
     
     def __str__(self):
         return f"{self.member_id}\n{self.full_name}\n{self.email}\n{self.password}\n{self.age}\n{self.gender}\n{self.contact}\n{self.status}"
-
+    
 class Admin:
     def __init__(self, name="", password="", contact="", position="admin", status="Active"):
         allowed_positions = ["admin", "superadmin"]
@@ -107,7 +107,7 @@ def custom_chr(code):
         return ascii_table[code]
     else:
         return ascii_table[code % 128]
-
+    
 def is_integer(string):
     if string == "":
         return False
@@ -135,7 +135,6 @@ def my_split(s, delimiter=' '):
     temp = ''
     i = 0
     while i < len(s):
-        # Check if the substring matches the delimiter
         if s[i:i+len(delimiter)] == delimiter:
             result.append(temp)
             temp = ''
@@ -202,6 +201,9 @@ def split_lines(text):
     
     return lines
 
+def min_val(a, b):
+    return a if a < b else b
+
 def raw_keys(dictionary):
     keys = []
     for key in dictionary:
@@ -243,7 +245,6 @@ def get_quoted_field(ss):
                     break
 
             if quote_end_index == -1:
-                # No closing quote found
                 field = ss
                 ss = ""
             else:
@@ -252,7 +253,6 @@ def get_quoted_field(ss):
 
                 if len(ss) > 0 and ss[0] == ',':
                     ss = ss[1:]
-
         except IndexError:
             field = ss
             ss = ""
@@ -280,9 +280,6 @@ def bubble_sort(arr, key=None, reverse=False):
                 swapped = True
         if not swapped:
             break
-
-def min_val(a, b):
-    return a if a < b else b
 
 def jump_search(arr, target, key=None):
     n = len(arr)
@@ -336,24 +333,6 @@ def jump_search(arr, target, key=None):
             return arr[prev]
     return None 
 
-def update_product_file():
-    global products
-    try:
-        with open(PRODUCT_FILE, 'w', encoding='utf-8') as file:
-            for product in products:
-                pid = f'"{product.product_id}"' if ',' in product.product_id else product.product_id
-                name = f'"{product.name}"' if ',' in product.name else product.name
-                category = f'"{product.category}"' if ',' in product.category else product.category
-                price = str(product.price)
-                stock = str(product.stock)
-                status = f'"{product.status}"' if ',' in product.status else product.status
-
-                file.write(f"{pid},{name},{category},{price},{stock},{status}\n")
-        return True
-    except IOError as e:
-        print(f"Error: Could not update the product file: {e}")
-        return False
-    
 def load_members():
     global members
     try:
@@ -455,7 +434,6 @@ def save_member(member):
         file.write(member.contact + "\n")
         file.write(member.status + "\n") 
 
-
 def signup():
     global logged_in_member 
 
@@ -542,7 +520,6 @@ def signup():
         if same:
             print("This email is already registered. Please use a different email!")
             continue
-        
         break
 
     while True:
@@ -579,7 +556,6 @@ def signup():
         if confirm_password != password:
             print("Passwords do not match!")
             continue
-    
         break
 
     while True:
@@ -601,7 +577,6 @@ def signup():
         if age[0] == '0':
             print("Age cannot start with 0!")
             continue
-
         break
 
     while True:
@@ -673,7 +648,6 @@ def signup():
         if phone_exists:
             print("This phone number is already registered! Please use a different one.")
             continue 
-    
         break
    
     new_member = Member(
@@ -1148,47 +1122,6 @@ def edit_member_profile():
         else:
             input("\nInvalid choice. Press [ENTER] to try again.")
             clear_screen()
-    
-def login_menu():
-    global logged_in_member 
-
-    while True:
-        print("\n===============================================================")
-        print("                   WELOCOME TO YESMOLAR BAKERY                 ")
-        print("===============================================================")
-        print("1.    Sign Up  ")
-        print("2.    Login  ")
-        print("3.    Admin Login  ")
-        print("4.    Exit  ")
-        print("===============================================================")
-
-        choice = input("Enter your choice: ")
-
-        if choice == '1':
-            load_members()
-            clear_screen()
-            print("\n===============================================================")
-            print("                    Signing Up As Member...                    ")
-            print("===============================================================")
-            signup()
-        elif choice == '2':
-            clear_screen()
-            print("\n===============================================================")
-            print("                    Logging In As Member...                    ")
-            print("===============================================================")
-            login()
-        elif choice == '3':
-            clear_screen()
-            print("\n===============================================================")
-            print("                    Logging In As Admin...                    ")
-            print("===============================================================")
-            admin_login()
-        elif choice == '4':
-            print("\nThank you for visiting Yesmolar Bakery!\n")
-            exit()
-        else:
-            input("\nInvalid choice. Press [ENTER] to try again.")
-            clear_screen()
 
 def admin_login():
     global logged_in_admin
@@ -1326,6 +1259,8 @@ def update_admin(updated_admin, original_name):
 
     except Exception as e:
         print("Error:", e)
+
+
 
 def admin_profile():
     global logged_in_admin
@@ -1540,30 +1475,56 @@ def edit_admin_profile():
 
 def filter_feedback_rating():
     try:
-        rate_filter = int(input("Enter the rating level to filter by (1 to 5): "))
+        rate_input = input("Enter the rating level to filter by (1 to 5): ")
+
+        if rate_input == "":
+            print("Invalid input. Rating cannot be empty.\n")
+            return filter_feedback_rating()
+        
+        only_digits = True
+        for ch in rate_input:
+            if not ('0' <= ch <= '9'):
+                only_digits = False
+                break
+
+        if not only_digits:
+            print("Invalid input. Please enter a valid number between 1 and 5.\n")
+            return filter_feedback_rating()
+        
+        rate_filter = int(rate_input)
+
+        if not (1 <= rate_filter <= 5):
+            print("Invalid rating. Please enter a number between 1 and 5.\n")
+            return filter_feedback_rating()
+
         if 1 <= rate_filter <= 5:       
             print("===========================================================================")
             print(f"|                    Filtered Feedback (Rating = {rate_filter})                       |")
-            print("===========================================================================")
 
             found = False
 
             try:
                 with open(RATING_FILE, 'r', encoding='utf-8') as file:
-                    for line in file:
-                        parts = line.strip().split(', ', 3)
-                        if len(parts) == 4:
-                            name, rating, comment, timestamp = parts
-                            if str(rate_filter) == rating:
-                                found = True
-                                print(f"| Name         : {name:<57}|")
-                                print(f"| Rating       : {rating:<57}|")
-                                print(f"| Comment      : {comment:<57}|")
-                                print(f"| Date & Time  : {timestamp:<57}|")
-                                print("===========================================================================")
+                    content = file.read()
+                    for line in split_lines(content):
+                        line = line.strip()
+                        if line:
+                            parts = my_split(line, ',')
+                            if len(parts) == 4:
+                                name, rating, comment, timestamp = parts
+                                if str(rate_filter) == rating:
+                                    found = True
+                                    print("===========================================================================")
+                                    print(f"| Date & Time  : {timestamp:<57}|")
+                                    print("===========================================================================")
+                                    print(f"| Name         : {name:<57}|")
+                                    print(f"| Rating       : {rating:<57}|")
+                                    print(f"| Comment      : {comment:<57}|")
+                                    print("---------------------------------------------------------------------------")
                                  
                                 
                 if not found:
+                    print("===========================================================================")
                     print("|                                                                         |")
                     print(f"|                   No records found for rating level {rate_filter}                   |")
                     print("|                                                                         |")
@@ -1571,9 +1532,6 @@ def filter_feedback_rating():
 
             except FileNotFoundError:
                 print("Feedback file not found.")
-        else:
-            print("Invalid rating. Please enter a number between 1 and 5.\n")
-            return filter_feedback_rating()
     except ValueError:
         print("Invalid input. Please enter a valid number.\n")
     input("\nPress [ENTER] to return to feedback menu.")
@@ -1584,16 +1542,21 @@ def sort_feedback_rating():
     try:
         feedback_rating = []
         with open(RATING_FILE, 'r', encoding='utf-8') as file:
-            for line in file:
+            content = file.read()
+            for line in split_lines(content):
                 line = line.strip()
                 if line:
-                    parts = line.split(', ', 3)
+                    parts = my_split(line, ',')
                     if len(parts) == 4:
                         name, rating, comment, timestamp = parts
                         feedback_rating.append(Feedback(name, rating, comment, timestamp))
 
         if not feedback_rating:
-            print("No feedback records found to sort.")
+            print("============================================================================")
+            print("|                                                                         |")
+            print("|                    No feedback records found to sort.                   |")
+            print("|                                                                         |")
+            print("---------------------------------------------------------------------------")
             input("\nPress [ENTER] to return to feedback menu.")
             clear_screen()
             return view_feedback_rating()
@@ -1610,23 +1573,22 @@ def sort_feedback_rating():
         if choice == '1':
             print("============================================================================")
             print("|            SORTED FEEDBACK & RATING (Rating - Highest First)             |")
-            print("============================================================================")
             bubble_sort(feedback_rating, key='rating', reverse=True)
         elif choice == '2':
             print("============================================================================")
             print("|            SORTED FEEDBACK & RATING (Rating - Lowest First)              |")
-            print("============================================================================")
             bubble_sort(feedback_rating, key='rating', reverse=False)
         elif choice == '3':
             print("============================================================================")
             print("|             SORTED FEEDBACK & RATING (Date – Newest First)               |")
-            print("============================================================================")
             bubble_sort(feedback_rating, key='datetime', reverse=True)
         elif choice == '4':
             print("============================================================================")
             print("|             SORTED FEEDBACK & RATING (Date – Oldest First)               |")
-            print("============================================================================")
             bubble_sort(feedback_rating, key='datetime', reverse=False)
+        elif not choice:
+            print("Invalid input. The choice cannot be empty.\n")
+            return sort_feedback_rating()
         elif choice == '5':
             input("\nPress [ENTER] to return rating menu.")
             clear_screen()
@@ -1636,10 +1598,12 @@ def sort_feedback_rating():
             return sort_feedback_rating()
 
         for record in feedback_rating:
+            print("============================================================================")
+            print(f"| Date & Time  : {record.timestamp:<58}|")
+            print("===========================================================================")
             print(f"| Name         : {record.name:<58}|")
             print(f"| Rating       : {record.rating:<58}|")
             print(f"| Comment      : {record.comment:<58}|")
-            print(f"| Date & Time  : {record.timestamp:<58}|")
             print("----------------------------------------------------------------------------")
 
         input("\nPress [ENTER] to return to feedback menu.")
@@ -1658,11 +1622,11 @@ def view_feedback_rating():
 
     print("===========================================================================")
     print("|                        Feedback and Rating Records                      |")
-    print("===========================================================================")
 
     try:
         with open(RATING_FILE, 'r', encoding='utf-8') as file:
-            lines = file.readlines()
+            content = file.read()
+            lines = split_lines(content)
 
         if not lines:
             print("|                                                                         |")
@@ -1673,13 +1637,17 @@ def view_feedback_rating():
             return admin_menu()
 
         for line in lines:
-            parts = line.strip().split(', ', 3)
-            if len(parts) == 4:
-                name, rating, comment, timestamp = parts
-                print(f"| Name         : {name:<57}|")
-                print(f"| Rating       : {rating:<57}|")
-                print(f"| Comment      : {comment:<57}|")
-                print(f"| Date & Time  : {timestamp:<57}|")
+            line = line.strip()
+            if line:
+                parts = my_split(line, ',')
+                if len(parts) == 4:
+                    name, rating, comment, timestamp = parts
+                    print("===========================================================================")
+                    print(f"| Date & Time  : {timestamp:<57}|")
+                    print("===========================================================================")
+                    print(f"| Name         : {name:<57}|")
+                    print(f"| Rating       : {rating:<57}|")
+                    print(f"| Comment      : {comment:<57}|")
                 print("---------------------------------------------------------------------------")
 
     except FileNotFoundError:
@@ -1704,10 +1672,62 @@ def view_feedback_rating():
             input("Press [Enter] to return to the admin menu.")
             clear_screen()
             return admin_menu()
+        
+        elif not choice:
+            print("Invalid input. The choice cannot be empty.\n")
 
         else:
             print("Invalid choice. Please enter 1, 2 or R.\n")
-    
+
+def login_menu():
+    global logged_in_member 
+
+    while True:
+        
+        print("\n============================================================================")
+        print("|                                                                          |")
+        print("|                             W E L C O M E   T O                          |")
+        print("|                         Y E S M O L A R   B A K E R Y                    |")
+        print("|                                                                          |")
+        print("============================================================================")
+        print("|                                                                          |")
+        print("|                                                          .--.            |")
+        print("|                                                  ✧     / _   /           |")
+        print("|  1.    Sign Up                                        / __  /            |")
+        print("|  2.    Login                                         / __  /  ✧          |")
+        print("|  3.    Admin Login                                  '  _  /              |")
+        print("|  4.    Exit                                     ✧   `..-'                |")
+        print("|                                                                          |")
+        print("============================================================================")
+
+        choice = input("Enter your choice: ")
+
+        if choice == '1':
+            load_members()
+            clear_screen()
+            print("\n===========================================================================")
+            print("|                            Signing Up As Member...                      |")
+            print("===========================================================================")
+            signup()
+        elif choice == '2':
+            clear_screen()
+            print("\n===========================================================================")
+            print("|                          Logging In As Member...                        |")
+            print("===========================================================================")
+            login()
+        elif choice == '3':
+            clear_screen()
+            print("\n===========================================================================")
+            print("|                           Logging In As Admin...                        |")
+            print("===========================================================================")
+            admin_login()
+        elif choice == '4':
+            print("\nThank you for visiting Yesmolar Bakery!\n")
+            exit()
+        else:
+            input("\nInvalid choice. Press [ENTER] to try again.")
+            clear_screen()
+            
 def admin_menu():
     global logged_in_member 
 
@@ -1753,44 +1773,6 @@ def admin_menu():
         else:
             input("\nInvalid choice. Press [ENTER] to try again.")
             clear_screen()
-            
-def feedback_rating():
-    if not logged_in_member:
-        print("Error: No user logged in.")
-        input("Press [ENTER] to continue.")
-        return
-
-    clear_screen()
-    print("===========================================================================")
-    print("|                              FEEDBACK & RATING                          |")
-    print("===========================================================================")
-
-    while True:
-        rate_input = input("\nEnter your rating for our system (1 to 5), [R] to return: ").strip()
-
-        if rate_input in ["R", "r"]:
-            clear_screen()
-            main_menu()
-
-        if rate_input.isdigit():
-            rate = int(rate_input)
-            if 1 <= rate <= 5:
-                break
-            else:
-                print("Invalid rating. Please enter a number between 1 and 5.\n")
-        else:
-            print("Invalid input. Please enter a number between 1 and 5, or 'R' to return.\n")
-
-    comment = input("\nEnter your comment (optional): ")
-    print("\nThank you for your feedback!")
-
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    with open(RATING_FILE, "a", encoding="utf-8") as file:
-        file.write(f"{logged_in_member.full_name}, {rate}, {comment}, {now}\n")
-
-    input("\nPress [ENTER] to return to main menu.")
-    clear_screen()
-    main_menu()
 
 def filter_product_admin():
     global products
@@ -2050,6 +2032,57 @@ def restock_product(products, category):
     input("Press [ENTER] to continue.")
     filter_product_admin()
 
+def feedback_rating():
+    if not logged_in_member:
+        print("Error: No user logged in.")
+        input("Press [ENTER] to continue.")
+        return
+
+    clear_screen()
+    print("===========================================================================")
+    print("|                              FEEDBACK & RATING                          |")
+    print("===========================================================================")
+
+    while True:
+        rate_input = input("\nEnter your rating for our system (1 to 5), [R] to return: ").strip()
+
+        if rate_input in ["R", "r"]:
+            clear_screen()
+            main_menu()
+
+        if not rate_input:
+            print("Invalid input. Rating cannot be empty.\n")
+            continue
+
+        only_digits = True
+        for c in rate_input:
+            if not ('0' <= c <= '9'):
+                only_digits = False
+                break
+
+        if only_digits:
+            rate = int(rate_input)
+            if 1 <= rate <= 5:
+                break
+            else:
+                print("Invalid rating. Please enter a number between 1 and 5.\n")
+        else:
+            print("Invalid input. Please enter a number between 1 and 5, or 'R' to return.\n")
+
+    comment = input("\nEnter your comment (optional): ")
+    print("\nThank you for your feedback!")
+
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    with open(RATING_FILE, "a", encoding="utf-8") as file:
+        if comment == "":
+            file.write(f"{logged_in_member.full_name},{rate},-,{now}\n")
+        else:
+            file.write(f"{logged_in_member.full_name},{rate},{comment},{now}\n")
+
+    input("\nPress [ENTER] to return to main menu.")
+    clear_screen()
+    main_menu()
+
 def display_product(product):
     if product.status == "Active":
         print("---------------------------------------------------------------------------")
@@ -2118,6 +2151,24 @@ def load_products():
         return False
     except IOError as e:
         print(f"Error: Could not read the product file: {e}")
+        return False
+
+def update_product_file():
+    global products
+    try:
+        with open(PRODUCT_FILE, 'w', encoding='utf-8') as file:
+            for product in products:
+                pid = f'"{product.product_id}"' if ',' in product.product_id else product.product_id
+                name = f'"{product.name}"' if ',' in product.name else product.name
+                category = f'"{product.category}"' if ',' in product.category else product.category
+                price = str(product.price)
+                stock = str(product.stock)
+                status = f'"{product.status}"' if ',' in product.status else product.status
+
+                file.write(f"{pid},{name},{category},{price},{stock},{status}\n")
+        return True
+    except IOError as e:
+        print(f"Error: Could not update the product file: {e}")
         return False
 
 def get_cart_filename(member_id):
@@ -2210,288 +2261,7 @@ def save_cart(cart):
     except IOError as e:
         print(f"Error: Could not update cart file: {e}")
         return False
-
-def display_cart(cart):
-    if not logged_in_member:
-        print("Error: No user logged in.")
-        input("Press [ENTER] to continue.")
-        return
-
-    clear_screen()
-
-    if not load_cart(cart):
-        print("Could not load cart data.")
-        input("Press [ENTER] to return.")
-        return
-
-    if not cart:
-        print("===========================================================================")
-        print("|                                  MY CART                                |")
-        print("===========================================================================")
-        print("|                                                                         |")
-        print("|                             Your cart is empty.                         |")
-        print("|                                                                         |")
-        print("===========================================================================")
-        print("\n1. Return to product list")
-        print("2. Return to main menu")
-
-        while True:
-            choice = input("\nEnter your choice: ")
-            if choice == '1':
-                clear_screen()
-                filter_products()
-                return
-            elif choice == '2':
-                clear_screen()
-                main_menu()
-                return
-            else:
-                print("Invalid choice. Please enter 1 or 2.")
     
-    bubble_sort(cart, key='product_id')
-
-    print("===========================================================================")
-    print("|                                 MY CART                                 |")
-    print("===========================================================================")
-    grand_total = 0.0
-
-    for i, item in my_enumerate(cart, 1):
-        pid = item.product_id if item.product_id else (item.product.product_id if item.product else "N/A")
-        name = item.name if item.name else (item.product.name if item.product else "N/A")
-        category = item.product.category if item.product and item.product.category else "N/A"
-        price = item.price if item.price is not None else (item.product.price if item.product else 0.0)
-        quantity = item.quantity
-        total = item.total if item.total is not None else (price * quantity)
-        status = item.product.status if item.product and item.product.status else "N/A"
-
-        print(" -------------------------------------------------------------------------")
-        print(f"| Item {str(i) + ':':<67}|")
-        print(f"| Product ID : {pid:<59}|")
-        print(f"| Name       : {name:<59}|")
-
-        if status=="Inactive":
-            total=0.0
-            print("| SORRY! This product is currently unavailable :(                         |")
-            print(" -------------------------------------------------------------------------")
-        else:
-            print(f"| Category   : {category:<59}|")
-            print(f"| Price      : RM {price:<56.2f}|")
-            print(f"| Quantity   : {quantity:<59}|")
-            print(f"| Total      : RM {total:<56.2f}|")
-            print(" -------------------------------------------------------------------------")
-        grand_total += total
-    print("===========================================================================")
-    print(f"| Total Price: RM {grand_total:<56.2f}|")
-    print("===========================================================================\n")
-
-    print(" ____________________________________")
-    print("|                                    |")
-    print("|    Options:                        |")
-    print("|  1. Delete an item from cart       |")
-    print("|  2. Edit quantity of an item       |")
-    print("|  3. Proceed to payment             |")
-    print("|  4. Back to product list           |")
-    print("|  5. Back to main menu              |")
-    print("|____________________________________|")
-
-    while True:
-        choice = input("\nEnter your choice: ")
-        if choice == '1':
-            delete_cart(cart)
-            break
-        elif choice == '2':
-            edit_cart(cart)
-            break
-        elif choice == '3':
-            proceed_to_payment(products,cart)
-            break
-        elif choice == '4':
-            clear_screen()
-            filter_products()
-            return
-        elif choice == '5':
-            clear_screen()
-            main_menu()
-            return
-        else:
-            print("Invalid choice. Please try again.")
-
-    display_cart(cart)
-
-def add_to_cart(cart, product_id, quantity):
-    if not logged_in_member:
-        print("Error: Cannot add to cart. No user logged in.")
-        return
-
-    global products
-    if not products:
-        if not load_products():
-            print("Error: Could not load products.")
-            return
-
-    # Sort products by product_id
-    bubble_sort(products, key='product_id')
-
-    # Search for product using the correct product_id
-    selected_product = jump_search(products, product_id, key='product_id')
-
-    if not selected_product:
-        print(f"Error: Product with ID {product_id} not found.")
-        return
-
-    if selected_product.status == "Inactive":
-        print("Error: This product is currently unavailable.\n")
-        return
-
-    if quantity <= 0:
-        print("Error: Quantity must be positive.")
-        return
-
-    if selected_product.stock < quantity:
-        print(f"Error: Not enough stock for {selected_product.name}. Available: {selected_product.stock}")
-        return
-
-    if not load_cart(cart):
-        print("Error: Could not load current cart.")
-        return
-
-    # Check if item is already in the cart
-    bubble_sort(cart, key='product_id')
-    item = jump_search(cart, product_id, key='product_id')
-
-    if item:
-        if selected_product.stock < item.quantity + quantity:
-            print(f"Error: Adding {quantity} would exceed stock.")
-            return
-        item.quantity += quantity
-        item.price = selected_product.price
-        item.total = item.quantity * item.price
-    else:
-        cart.append(CartItem(
-            product=selected_product,
-            product_id=selected_product.product_id,
-            name=selected_product.name,
-            price=selected_product.price,
-            quantity=quantity,
-            status=selected_product.status
-        ))
-
-    selected_product.stock -= quantity
-
-    if save_cart(cart) and update_product_file():
-        print(f"\nSuccessfully added {quantity} x {selected_product.name} to cart!")
-    else:
-        # Revert stock if saving failed
-        selected_product.stock += quantity
-        print("\nError: Could not save changes.")
-
-def filter_products():
-    global products
-    cart = []
-
-    if not load_products():
-        print("Failed to load products.")
-        input("Press [ENTER] to return to main menu.")
-        clear_screen()
-        main_menu()
-        return
-
-    while True:
-        clear_screen()
-        print("===========================================================================")
-        print("|                        WELCOME TO OUR PASTRY PAN!                       |")
-        print("===========================================================================")
-        print("| Select a category:                                                      |")
-        categories = {
-            '1': 'Bread', '2': 'Pastries', '3': 'Cakes', '4': 'Donuts',
-            '5': 'Cupcakes & Muffins', '6': 'Cookies', '7': 'Pies & Tarts',
-            '8': 'Savories & Sandwiches'
-        }
-        for key, value in raw_items(categories):
-            print(f"| {key}. {value:<69}|")
-        print(f"| {'9. Back to Main Menu':<72}|")
-        print("===========================================================================")
-
-        choice = input("Enter your choice (1-9): ")
-        if choice == '9':
-            clear_screen()
-            main_menu()
-            return
-        elif choice not in categories:
-            print("Invalid choice. Please try again.\n")
-            input("Press [ENTER] to continue.")
-            continue
-
-        selected_category = categories[choice]
-        while True:
-            clear_screen()
-            print(f"Products in Category: {selected_category}                ")
-            load_products()
-            # Only show active products in this category
-            filtered = [p for p in products if p.category.lower() == selected_category.lower() and p.status == "Active"]
-
-            if not filtered:
-                print(f"\nNo available products found in '{selected_category}' category.")
-            else:
-                for product in filtered:
-                    display_product(product)
-            print("\n---------------------------------------------------------------------------")
-
-            print(" _________________________________")
-            print("|                                 |")
-            print("|    Options:                     |")
-            print("| Enter Product ID to add to cart |")
-            print("| [C] View Cart                   |")
-            print("| [B] Back to Category Selection  |")
-            print("| [M] Back to Main Menu           |")
-            print("|_________________________________|")
-
-            selection = input("\nEnter your choice: ").upper()
-
-            if selection == 'C':
-                display_cart(cart)
-                continue
-            elif selection == 'B':
-                break
-            elif selection == 'M':
-                clear_screen()
-                main_menu()
-                return
-
-            product_id = selection
-            product = None
-            product = jump_search(products, selection, key='product_id')
-
-            if not product:
-                print(f"Product with ID '{product_id}' not found.\n")
-                input("Press [ENTER] to continue.")
-                continue
-
-            # Check if product is inactive
-            if product.status == "Inactive":
-                print("\nThis product is currently unavailable.\n")
-                input("Press [ENTER] to continue.")
-                continue
-
-            if product.stock <= 0:
-                print("\nSorry, this product is out of stock!\n")
-                input("Press [ENTER] to continue.")
-                continue
-
-            while True:
-                try:
-                    qty = int(input(f"\nEnter quantity (available: {product.stock}): "))
-                    if qty <= 0:
-                        print("Quantity must be positive.")
-                    elif qty > product.stock:
-                        print("Not enough stock available.")
-                    else:
-                        add_to_cart(cart, product_id, qty)
-                        input("\nPress [ENTER] to continue.")
-                        break
-                except ValueError:
-                    print("Invalid input. Please enter a number.")
-
 def delete_cart(cart):
     while True:
         item_num_input = input("\nEnter item number to delete (or 0 to cancel): ").strip()
@@ -2559,7 +2329,7 @@ def edit_cart(cart):
         return False
 
     editable_items = []
-    for i, item in enumerate(cart, 1):
+    for i, item in my_enumerate(cart, 1):
         status = item.product.status if item.product else "N/A"
         if status == "Active":
             editable_items.append((i, item))
@@ -2699,7 +2469,7 @@ def proceed_to_payment(products, cart):
         print("===========================================================================")
         
         print("\nInactive products in your cart:")
-        for i, item in enumerate(cart, 1):
+        for i, item in my_enumerate(cart, 1):
             status = item.product.status if item.product else "Active"
             if status == "Inactive":
                 print(f"{i}. {item.name} (Product ID: {item.product_id})")
@@ -2762,7 +2532,7 @@ def proceed_to_payment(products, cart):
             payable_items.append(item)
             actual_total += item.total
     
-    for i, item in enumerate(cart, 1):
+    for i, item in my_enumerate(cart, 1):
         status = item.product.status if item.product else "Active"
         
         print(" -------------------------------------------------------------------------")
@@ -3007,7 +2777,6 @@ def purchase_history(cart, total_payment, payment_method):
         return False
     
     try:
-        from datetime import datetime
         purchase_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         order_id = get_order_id()
 
@@ -3077,7 +2846,6 @@ def view_purchase_history():
             input("\nPress [ENTER] to continue.")
             return
 
-        from datetime import datetime
         records = my_split(content.strip(), '\n\n')
         user_records = []
 
@@ -3205,7 +2973,281 @@ def view_purchase_history():
         print(f"Error viewing purchase history: {str(e)}")
         input("Press [ENTER] to continue.")
 
-# ==========================================VIEW DASHBOARD==========================================
+def display_cart(cart):
+    if not logged_in_member:
+        print("Error: No user logged in.")
+        input("Press [ENTER] to continue.")
+        return
+
+    clear_screen()
+
+    if not load_cart(cart):
+        print("Could not load cart data.")
+        input("Press [ENTER] to return.")
+        return
+
+    if not cart:
+        print("===========================================================================")
+        print("|                                  MY CART                                |")
+        print("===========================================================================")
+        print("|                                                                         |")
+        print("|                             Your cart is empty.                         |")
+        print("|                                                                         |")
+        print("===========================================================================")
+        print("\n1. Return to product list")
+        print("2. Return to main menu")
+
+        while True:
+            choice = input("\nEnter your choice: ")
+            if choice == '1':
+                clear_screen()
+                filter_products()
+                return
+            elif choice == '2':
+                clear_screen()
+                main_menu()
+                return
+            else:
+                print("Invalid choice. Please enter 1 or 2.")
+    
+    bubble_sort(cart, key='product_id')
+
+    print("===========================================================================")
+    print("|                                 MY CART                                 |")
+    print("===========================================================================")
+    grand_total = 0.0
+
+    for i, item in my_enumerate(cart, 1):
+        pid = item.product_id if item.product_id else (item.product.product_id if item.product else "N/A")
+        name = item.name if item.name else (item.product.name if item.product else "N/A")
+        category = item.product.category if item.product and item.product.category else "N/A"
+        price = item.price if item.price is not None else (item.product.price if item.product else 0.0)
+        quantity = item.quantity
+        total = item.total if item.total is not None else (price * quantity)
+        status = item.product.status if item.product and item.product.status else "N/A"
+
+        print(" -------------------------------------------------------------------------")
+        print(f"| Item {str(i) + ':':<67}|")
+        print(f"| Product ID : {pid:<59}|")
+        print(f"| Name       : {name:<59}|")
+
+        if status=="Inactive":
+            total=0.0
+            print("| SORRY! This product is currently unavailable :(                         |")
+            print(" -------------------------------------------------------------------------")
+        else:
+            print(f"| Category   : {category:<59}|")
+            print(f"| Price      : RM {price:<56.2f}|")
+            print(f"| Quantity   : {quantity:<59}|")
+            print(f"| Total      : RM {total:<56.2f}|")
+            print(" -------------------------------------------------------------------------")
+        grand_total += total
+    print("===========================================================================")
+    print(f"| Total Price: RM {grand_total:<56.2f}|")
+    print("===========================================================================\n")
+
+    print(" ____________________________________")
+    print("|                                    |")
+    print("|    Options:                        |")
+    print("|  1. Delete an item from cart       |")
+    print("|  2. Edit quantity of an item       |")
+    print("|  3. Proceed to payment             |")
+    print("|  4. Back to product list           |")
+    print("|  5. Back to main menu              |")
+    print("|____________________________________|")
+
+    while True:
+        choice = input("\nEnter your choice: ")
+        if choice == '1':
+            delete_cart(cart)
+            break
+        elif choice == '2':
+            edit_cart(cart)
+            break
+        elif choice == '3':
+            proceed_to_payment(products,cart)
+            break
+        elif choice == '4':
+            clear_screen()
+            filter_products()
+            return
+        elif choice == '5':
+            clear_screen()
+            main_menu()
+            return
+        else:
+            print("Invalid choice. Please try again.")
+
+    display_cart(cart)
+
+def add_to_cart(cart, product_id, quantity):
+    if not logged_in_member:
+        print("Error: Cannot add to cart. No user logged in.")
+        return
+
+    global products
+    if not products:
+        if not load_products():
+            print("Error: Could not load products.")
+            return
+
+    bubble_sort(products, key='product_id')
+
+    selected_product = jump_search(products, product_id, key='product_id')
+
+    if not selected_product:
+        print(f"Error: Product with ID {product_id} not found.")
+        return
+
+    if selected_product.status == "Inactive":
+        print("Error: This product is currently unavailable.\n")
+        return
+
+    if quantity <= 0:
+        print("Error: Quantity must be positive.")
+        return
+
+    if selected_product.stock < quantity:
+        print(f"Error: Not enough stock for {selected_product.name}. Available: {selected_product.stock}")
+        return
+
+    if not load_cart(cart):
+        print("Error: Could not load current cart.")
+        return
+
+    bubble_sort(cart, key='product_id')
+    item = jump_search(cart, product_id, key='product_id')
+
+    if item:
+        if selected_product.stock < item.quantity + quantity:
+            print(f"Error: Adding {quantity} would exceed stock.")
+            return
+        item.quantity += quantity
+        item.price = selected_product.price
+        item.total = item.quantity * item.price
+    else:
+        cart.append(CartItem(
+            product=selected_product,
+            product_id=selected_product.product_id,
+            name=selected_product.name,
+            price=selected_product.price,
+            quantity=quantity,
+            status=selected_product.status
+        ))
+
+    selected_product.stock -= quantity
+
+    if save_cart(cart) and update_product_file():
+        print(f"\nSuccessfully added {quantity} x {selected_product.name} to cart!")
+    else:
+        selected_product.stock += quantity
+        print("\nError: Could not save changes.")
+
+def filter_products():
+    global products
+    cart = []
+
+    if not load_products():
+        print("Failed to load products.")
+        input("Press [ENTER] to return to main menu.")
+        clear_screen()
+        main_menu()
+        return
+
+    while True:
+        clear_screen()
+        print("===========================================================================")
+        print("|                        WELCOME TO OUR PASTRY PAN!                       |")
+        print("===========================================================================")
+        print("| Select a category:                                                      |")
+        categories = {
+            '1': 'Bread', '2': 'Pastries', '3': 'Cakes', '4': 'Donuts',
+            '5': 'Cupcakes & Muffins', '6': 'Cookies', '7': 'Pies & Tarts',
+            '8': 'Savories & Sandwiches'
+        }
+        for key, value in raw_items(categories):
+            print(f"| {key}. {value:<69}|")
+        print(f"| {'9. Back to Main Menu':<72}|")
+        print("===========================================================================")
+
+        choice = input("Enter your choice (1-9): ")
+        if choice == '9':
+            clear_screen()
+            main_menu()
+            return
+        elif choice not in categories:
+            print("Invalid choice. Please try again.\n")
+            input("Press [ENTER] to continue.")
+            continue
+
+        selected_category = categories[choice]
+        while True:
+            clear_screen()
+            print(f"Products in Category: {selected_category}                ")
+            load_products()
+            filtered = [p for p in products if p.category.lower() == selected_category.lower() and p.status == "Active"]
+
+            if not filtered:
+                print(f"\nNo available products found in '{selected_category}' category.")
+            else:
+                for product in filtered:
+                    display_product(product)
+            print("\n---------------------------------------------------------------------------")
+
+            print(" _________________________________")
+            print("|                                 |")
+            print("|    Options:                     |")
+            print("| Enter Product ID to add to cart |")
+            print("| [C] View Cart                   |")
+            print("| [B] Back to Category Selection  |")
+            print("| [M] Back to Main Menu           |")
+            print("|_________________________________|")
+
+            selection = input("\nEnter your choice: ").upper()
+
+            if selection == 'C':
+                display_cart(cart)
+                continue
+            elif selection == 'B':
+                break
+            elif selection == 'M':
+                clear_screen()
+                main_menu()
+                return
+
+            product_id = selection
+            product = None
+            product = jump_search(products, selection, key='product_id')
+
+            if not product:
+                print(f"Product with ID '{product_id}' not found.\n")
+                input("Press [ENTER] to continue.")
+                continue
+
+            if product.status == "Inactive":
+                print("\nThis product is currently unavailable.\n")
+                input("Press [ENTER] to continue.")
+                continue
+
+            if product.stock <= 0:
+                print("\nSorry, this product is out of stock!\n")
+                input("Press [ENTER] to continue.")
+                continue
+
+            while True:
+                try:
+                    qty = int(input(f"\nEnter quantity (available: {product.stock}): "))
+                    if qty <= 0:
+                        print("Quantity must be positive.")
+                    elif qty > product.stock:
+                        print("Not enough stock available.")
+                    else:
+                        add_to_cart(cart, product_id, qty)
+                        input("\nPress [ENTER] to continue.")
+                        break
+                except ValueError:
+                    print("Invalid input. Please enter a number.")
+
 def view_dashboard():
     product_count = 0
     active_product = 0
@@ -3214,14 +3256,26 @@ def view_dashboard():
     
     try:
         with open(PRODUCT_FILE, 'r') as file:
-            for line in file:
+            content = file.read()
+            lines = split_lines(content)
+            for line in lines:
                 line = line.strip()
                 if line:
                     product_count += 1
-                    parts = line.split(',')
+                    parts = my_split(line, ',')
                     if len(parts) >= 6:
-                        stock = int(parts[4]) if parts[4].isdigit() else 0       
-                        status = parts[5]
+                        stock_str = parts[4].strip()    
+                        stock = 0
+                        is_all_digits = True
+                        if stock_str:
+                            for ch in stock_str:
+                                if not ('0' <= ch <= '9'):
+                                    is_all_digits = False
+                                    break
+                            if is_all_digits:
+                                stock = int(stock_str)       
+                        
+                        status = parts[5].strip()
                         if status == "Active":
                             active_product += 1
                             if stock <= 0:
@@ -3237,18 +3291,15 @@ def view_dashboard():
     inactive_member = 0
     
     try:
-        with open (MEMBERS_FILE, 'r') as file:
-            lines = []
-            for line in file:
-                line = line.strip()
-                if line:
-                    lines.append(line)
-                    
+        with open(MEMBERS_FILE, 'r') as file:
+            content = file.read()
+            lines = split_lines(content)
+            
             member_count = len(lines) // 8
-            for i in range(0, len(lines), 8):
-                if i + 7 < len(lines) and lines[i+7] == "Active":
+            for i in range(0, len(lines), 9):
+                if i + 7 < len(lines) and lines[i+7].strip() == "Active":
                     active_member += 1
-                else :
+                elif i + 7 < len(lines) and lines[i+7].strip() == "Inactive":
                     inactive_member += 1
     except FileNotFoundError:
         pass
@@ -3261,15 +3312,15 @@ def view_dashboard():
     try:
         with open(PURCHASE_HISTORY_FILE, 'r') as file:
             content = file.read()
-            records = content.split("\n\n")
+            records = my_split(content.strip(), delimiter="\n\n")
             for record in records:
                 if not record.strip():
                     continue
-                lines = record.strip().split("\n")
+                lines = my_split(record.strip(), delimiter="\n")
                 if len(lines) < 2:
                     continue
 
-                date_line = lines[0].split(",")
+                date_line = my_split(lines[0], ',')
                 if len(date_line) >= 4:
                     date_part = date_line[3].strip()
                     if len(date_part) >= 7 and date_part[5:7] in monthly_sale:
@@ -3280,16 +3331,27 @@ def view_dashboard():
                     order_month = None
 
                 for line in lines:
-                    parts = line.split(",")
+                    parts = my_split(line, ',')
                     if len(parts) >= 5 and parts[3] == "TOTAL":
-                        try:
-                            total = float(parts[4])
+                        total_str = parts[4]
+                        total = 0.0
+                        has_dot = False
+                        is_float = True
+                        for ch in total_str:
+                            if ch == '.':
+                                if has_dot:
+                                    is_float = False
+                                    break
+                                has_dot = True
+                            elif ch < '0' or ch > '9':
+                                is_float = False
+                                break
+                        if is_float:
+                            total = float(total_str)
                             total_sales += total
                             if order_month:
                                 monthly_sale[order_month] += total
                             order_count += 1
-                        except:
-                            pass        
     except FileNotFoundError:
         pass
     
@@ -3315,7 +3377,9 @@ def view_dashboard():
     print("|                                                                         |")
     print("| Monthly Sales Report                                                    |")
     print("|                                                                         |")
-    for key in sorted(month_name.keys()):
+    month_keys = raw_keys(month_name)
+    bubble_sort(month_keys)
+    for key in month_keys:
         name = month_name[key]
         sale = monthly_sale[key]
         print(f"| {name:<71} |")
@@ -3324,9 +3388,7 @@ def view_dashboard():
     
     print("===========================================================================")
     input("\nPress [ENTER] to return to admin menu.")
-# =======================================END OF VIEW DASHBOARD=======================================
 
-# ===================================VIEW ORDER HISTORY===================================
 def view_order_history():
     try:
         member_ids = []
@@ -3545,9 +3607,7 @@ def view_order_history():
     except FileNotFoundError:
         print("\nOrder history file not found.")
         input("Press [ENTER] to continue")
-# ===================================END OF VIEW ORDER HISTORY===================================
 
-# =======================================VIEW SALES REPORT=======================================
 def view_sales_report():
     category_sales = {}
     category_count = {}
@@ -3555,10 +3615,12 @@ def view_sales_report():
     try:
         products = {}
         with open(PRODUCT_FILE, 'r') as file:
-            for line in file:
+            content = file.read()
+            lines = split_lines(content)
+            for line in lines:
                 line = line.strip()
                 if line:
-                    parts = line.split(',')
+                    parts = my_split(line, ',')
                     if len(parts) >= 3:
                         product_id = parts[0]
                         name = parts[1]
@@ -3567,22 +3629,46 @@ def view_sales_report():
         
         with open(PURCHASE_HISTORY_FILE, 'r') as file:
             content = file.read()
-            records = content.split('\n\n')
+            records = my_split(content.strip(), delimiter="\n\n")
 
             for record in records:
                 if not record.strip():
                     continue
                 
-                lines = record.split("\n")
+                lines = my_split(record, '\n')
                 if len(lines) < 2:
                     continue
                 
                 for line in lines[1:-1]:
-                    parts = line.split(',')
+                    parts = my_split(line, ',')
                     if len(parts) >= 9:
                         product_id = parts[3]
-                        quantity = int(parts[7]) if parts[7].isdigit else 0
-                        total = float(parts[8]) if parts[8].isdigit else 0
+                        quantity_str = parts[7]
+                        total_str = parts[8]
+                        
+                        quantity = 0
+                        is_digit = True
+                        for ch in quantity_str:
+                            if ch < '0' or ch > '9':
+                                is_digit = False
+                                break
+                        if is_digit:
+                            quantity = int(quantity_str)
+                        
+                        total = 0.0
+                        is_float = True
+                        has_decimal = False
+                        for ch in total_str:
+                            if ch == '.':
+                                if has_decimal:
+                                    is_float = False
+                                    break
+                                has_decimal = True
+                            elif ch < '0' or ch > '9':
+                                is_float = False
+                                break
+                        if is_float:
+                            total = float(total_str)
                         
                         if product_id in products:
                             category = products[product_id][1]
@@ -3623,9 +3709,7 @@ def view_sales_report():
     except FileNotFoundError:
         print("Required data files not found.")
         input("Press [ENTER] to continue.")
-# ====================================END OF VIEW SALES REPORT===================================
 
-# =======================================MANAGE MEMBER LIST======================================
 def manage_member():
     while True:
         clear_screen()
@@ -3757,80 +3841,90 @@ def change_member_status():
     try:
         clear_screen()
         print("===========================================================================")
-        print("|                                MEMBER LIST                              |")
+        print("|                                 MEMBER LIST                             |")
         print("===========================================================================")
-        print("| ID              | Name                   | Status                       |")
+        print("| ID                 | Name                          | Status             |")
         print("===========================================================================")
-        
-        member_ids = []
-        with open(MEMBERS_FILE, 'r') as file:
-            lines = [line.strip() for line in file if line.strip()]
+
+        with open(MEMBERS_FILE, 'r', encoding='utf-8') as file:
+            content = file.read()
             
-            for i in range(0, len(lines), 8):
-                if i + 7 < len(lines):
-                    member_id = lines[i]
-                    full_name = lines[i+1]
-                    status = lines[i + 7]
-                    member_ids.append(member_id)
-                    
-                    print(f"| {member_id:<16}| {full_name:<23}| {status:<28} |")
-        print("===========================================================================")
+        members_data = []
+        current_member = []
+        blank_line_count = 0
         
+        for char in content:
+            if char == '\n':
+                blank_line_count += 1
+                if blank_line_count == 2:
+                    if current_member:
+                        members_data.append(join_strings("", current_member))
+                        current_member = []
+                    blank_line_count = 0
+            else:
+                if blank_line_count == 1:
+                    current_member.append('\n')
+                    blank_line_count = 0
+                current_member.append(char)
+        
+        if current_member:
+            members_data.append(join_strings("", current_member))
+
+        for member_data in members_data:
+            fields = split_lines(member_data)
+            if len(fields) >= 8:
+                member_id = fields[0]
+                full_name = fields[1]
+                status = fields[7]
+                print(f"| {member_id:<18} | {full_name:<29} | {status:<18} |")
+
+        print("===========================================================================")
+
         while True:
             chosen_id = input("\nEnter Member ID to change status (or 'C' to cancel): ").strip().upper()
             if chosen_id == 'C':
                 print("\nOperation cancelled.")
-                input("Press [ENTER] to continue. ")
+                input("Press [ENTER] to continue.")
                 return
-            
-            if chosen_id not in member_ids:
+
+            found = False
+            for member_data in members_data:
+                fields = split_lines(member_data)
+                if fields and fields[0] == chosen_id:
+                    found = True
+                    break
+
+            if not found:
                 print(f"\nError: Member ID '{chosen_id}' not found. Please try again.")
-                print("Available Member ID:", ", ".join(member_ids))
                 continue
-            
+
             break
+        
         print("___________________________________________________________________________")
 
-        members = []
-        with open(MEMBERS_FILE, 'r') as file:
-            content = file.read()
-            member_blocks = content.split("\n\n")
-            
-            for block in member_blocks:
-                if block.strip():
-                    lines = block.splitlines()
-                    if len(lines) >= 8:
-                        members.append(lines)
-                    
-        updated = False
-        for member_data in members:
-            if member_data[0] == chosen_id:
-                current_status = member_data[7] if len(member_data) > 7 else "Active"
+        updated_members_data = []
+        for member_data in members_data:
+            fields = split_lines(member_data)
+            if fields and fields[0] == chosen_id:
+                current_status = fields[7]
                 new_status = "Inactive" if current_status == "Active" else "Active"
-                member_data[7] = new_status
-                updated = True
-                break
-            
-        if updated:
-            with open(MEMBERS_FILE, 'w') as file:
-                for member_data in members:
-                    file.write("\n".join(member_data) + "\n\n")
-                 
-            print(f"\nMember {chosen_id} status changed to {new_status} successfully.")
-        else:
-            print("Member not found.")
-        
+                fields[7] = new_status
+                updated_members_data.append(join_strings("\n", fields))
+                print(f"\nMember {chosen_id} status changed from {current_status} to {new_status}.")
+            else:
+                updated_members_data.append(member_data)
+
+        # Save changes
+        with open(MEMBERS_FILE, 'w', encoding='utf-8') as file:
+            file.write(join_strings("\n\n", updated_members_data))
+
         print("\n===========================================================================")
-            
         input("Press [ENTER] to continue.")
-        
+
     except FileNotFoundError:
         print("Member file not found.")
         input("Press [ENTER] to continue.")
-        
-# ===================================END OF MANAGE MEMBER LIST===================================
 
-# ========================================VIEW ADMIN LIST========================================
 def manage_admin():
     global logged_in_admin
     
@@ -3878,21 +3972,24 @@ def view_admin_list(status_filter):
                     
             for i in range(0, len(lines), 5):
                 if i + 4 < len(lines):
-                    admin = Admin(
-                        name=lines[i],
-                        password=lines[i+1],
-                        contact=lines[i+2],
-                        position=lines[i+3],
-                        status=lines[i+4]                        
-                    )
-                    admins.append(admin)
+                    try:
+                        admin = Admin(
+                            name=lines[i],
+                            password=lines[i+1],
+                            contact=lines[i+2],
+                            position=lines[i+3],
+                            status=lines[i+4]                        
+                        )
+                        admins.append(admin)
+                    except ValueError as e:
+                        print(f"Error creating admin from line {i}: {e}")
+                        continue
                     
         filtered_admins = []
         for a in admins:
             if a.status == status_filter:
                 filtered_admins.append(a)    
                 
-                    
         clear_screen()
         if status_filter == "Active":
             print("===========================================================================")
@@ -3938,7 +4035,7 @@ def view_admin_list(status_filter):
         input("\nPress [ENTER] to continue")
     except FileNotFoundError:
         print("Admin file not found.")
-        input("Press [ENTER] to continue.") 
+        input("Press [ENTER] to continue.")
 
 def add_new_admin():       
     clear_screen()
@@ -3966,7 +4063,7 @@ def add_new_admin():
         try:
             with open(ADMINS_FILE, 'r') as file:
                 content = file.read()
-                if f"\n{name}\n" in content or content.startswith(name + "\n"):
+                if f"\n{name}\n" in content or content and content[0:len(name)+1] == name + "\n":
                     print("Name already exists.")
                     continue
         except FileNotFoundError:
@@ -4057,20 +4154,38 @@ def change_admin_status():
         print("| Name                  | Position              | Status                  |")
         print("===========================================================================")
         
-        admin_names = []
-        admin_details = []
-        with open(ADMINS_FILE, 'r') as file:
-            lines = [line.strip() for line in file if line.strip()]
+        with open(ADMINS_FILE, 'r', encoding='utf-8') as file:
+            content = file.read()
             
-            for i in range(0, len(lines), 5):
-                if i + 4 < len(lines):
-                    name = lines[i]
-                    position = lines[i+3]
-                    status = lines[i+4]
-                    admin_names.append((name))
-                    admin_details.append((name, position, status))
-                    print(f"| {name:<22}| {position:<22}| {status:<24}|")
+        admins_data = []
+        current_admin = []
+        blank_line_count = 0
         
+        for char in content:
+            if char == '\n':
+                blank_line_count += 1
+                if blank_line_count == 2:
+                    if current_admin:
+                        admins_data.append(join_strings("", current_admin))
+                        current_admin = []
+                    blank_line_count = 0
+            else:
+                if blank_line_count == 1:
+                    current_admin.append('\n')
+                    blank_line_count = 0
+                current_admin.append(char)
+        
+        if current_admin:
+            admins_data.append(join_strings("", current_admin))
+
+        for admin_data in admins_data:
+            fields = split_lines(admin_data)
+            if len(fields) >= 5:
+                name = fields[0]
+                position = fields[3]
+                status = fields[4]
+                print(f"| {name:<22}| {position:<22}| {status:<24}|")
+
         print("===========================================================================")
         
         while True:
@@ -4086,51 +4201,42 @@ def change_admin_status():
                 input("Press [ENTER] to continue. ")
                 return
             
-            if name not in admin_names:
+            found = False
+            for admin_data in admins_data:
+                fields = split_lines(admin_data)
+                if fields and fields[0] == name:
+                    found = True
+                    break
+            
+            if not found:
                 print(f"\nError: Admin '{name}' not found. Please try again.")
-                print("Available Admin Names: ",",".join(admin_names))
                 continue
             
             break
         
         print("===========================================================================")
         
-        current_status = ""
-        new_status = ""
-        for admin in admin_details:
-            if admin[0] == name:
-                current_status = admin[2]
+        updated_admins_data = []
+        for admin_data in admins_data:
+            fields = split_lines(admin_data)
+            if fields and fields[0] == name:
+                current_status = fields[4]
                 new_status = "Inactive" if current_status == "Active" else "Active"
-                break
+                fields[4] = new_status
+                updated_admins_data.append(join_strings("\n", fields))
+                print(f"Admin '{name}' status changed from {current_status} to {new_status}.")
+            else:
+                updated_admins_data.append(admin_data)
         
-        with open(ADMINS_FILE, 'r') as file:
-            content = file.read()
-            
-        admins = content.split("\n\n")
-        updated_content = []
+        with open(ADMINS_FILE, 'w', encoding='utf-8') as file:
+            file.write(join_strings("\n\n", updated_admins_data))
         
-        for admin_block in admins:
-            if admin_block.strip():
-                admin_data = admin_block.splitlines()
-                if len(admin_data) >= 5 and admin_data[0] == name:
-                    admin_data[4] = new_status
-                    updated_content.append("\n".join(admin_data))
-                else:
-                    updated_content.append(admin_block)    
-                
-        with open(ADMINS_FILE, 'w') as file:
-            file.write("\n\n".join(updated_content))
-        
-        print(f"Admin '{name}' status changed from {current_status} to {new_status} successfully. ")
         input("Press [ENTER] to continue. ")
         
     except FileNotFoundError:
         print("Admin file not found.")
-        input("Press [ENTER] to continue.")                
-# ====================================END OF VIEW ADMIN LIST=====================================
+        input("Press [ENTER] to continue.")   
 
-
-#------------------------------------------------------------Member main menu function------------------------------------------------
 def main_menu():
     global logged_in_member
     if not logged_in_member:
@@ -4138,17 +4244,18 @@ def main_menu():
 
     while True:
         clear_screen()
-        print(f"Welcome {logged_in_member.full_name} ! ")
-        print("===============================================================")
-        print("                            Main Menu                          ")
-        print("===============================================================")
-        print(" [1] Browse Products")
-        print(" [2] View My Cart")
-        print(" [3] My Profile")
-        print(" [4] Purchase History")
-        print(" [5] Rate Our System")
-        print(" [6] Log Out")
-        print("===============================================================")
+        print("===========================================================================")
+        print(f"|                            Welcome {logged_in_member.full_name + ' !':<37}|")
+        print("===========================================================================")
+        print("|                               Main Menu                                 |")
+        print("===========================================================================")
+        print("| 1. Browse Products                                                      |")
+        print("| 2. View My Cart                                                         |")
+        print("| 3. My Profile                                                           |")
+        print("| 4. Purchase History                                                     |")
+        print("| 5. Rate Our System                                                      |")
+        print("| 6. Log Out                                                              |")
+        print("===========================================================================")
 
         choice = input("Enter your choice: ")
 
@@ -4161,8 +4268,10 @@ def main_menu():
             member_profile()
         elif choice == '4':
             view_purchase_history()
+            return
         elif choice == '5':
             feedback_rating()
+            return
         elif choice == '6':
             input("\nPress [ENTER] to logout.")
             clear_screen()
@@ -4170,7 +4279,6 @@ def main_menu():
         else:
             input("\nInvalid choice. Press [ENTER] to try again.")
 
-#---------------------------------------------------------------------------Main---------------------------------------------------------------
 def main():
     global logged_in_member
     logged_in_member = None 
@@ -4181,6 +4289,5 @@ def main():
         return
     
     login_menu()
-
     main_menu()
-main()
+main() 
