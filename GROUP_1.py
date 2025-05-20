@@ -1673,19 +1673,19 @@ def filter_product_admin():
 
     while True:
         clear_screen()
-        print("===============================================================")
-        print("                YESMOLAR BAKERY STORE INVENTORY                ")
-        print("===============================================================")
-        print("Select a category:")
+        print("===========================================================================")
+        print("|                    YESMOLAR BAKERY STORE INVENTORY                      |")
+        print("===========================================================================")
+        print("| Select a category:                                                      |")
         categories = {
             '1': 'Bread', '2': 'Pastries', '3': 'Cakes', '4': 'Donuts',
             '5': 'Cupcakes & Muffins', '6': 'Cookies', '7': 'Pies & Tarts',
             '8': 'Savories & Sandwiches'
         }
-        for key, value in categories.items():
-            print(f" [{key}] {value}")
-        print(" [9] Back to Admin Menu")
-        print("===============================================================")
+        for key, value in raw_items(categories):
+            print(f"| [{key}] {value:<68}|")
+        print(f"| {'[9] Back to Main Menu':<72}|")
+        print("===========================================================================")
 
         choice = input("Enter your choice (1-9): ")
         if choice == '9':
@@ -1700,17 +1700,21 @@ def filter_product_admin():
         selected_category = categories[choice]
         while True:
             clear_screen()
-            print(f"===== Products in Category: {selected_category} =====")
+            print(f"Products in Category: {selected_category}                ")
             load_products()
 
             display_product_admin(products, selected_category)
-            print("---------------------------------------------------------------")
+            print("\n---------------------------------------------------------------------------")
 
             # Admin options
-            print("\n1. Add New Product to This Category")
-            print("2. Edit Existing Product")
-            print("3. Restock Product")
-            print("4. Return to Category Selection")
+            print(" ________________________________________")
+            print("|                                        |")
+            print("|    Options:                            |")
+            print("| [1] Add New Product to This Category   |")
+            print("| [2] Edit Existing Product              |")
+            print("| [3] Restock Product                    |")
+            print("| [4] Return to Category Selection       |")
+            print("|________________________________________|")
         
             admin_choice = input("\nEnter your choice: ")
         
@@ -1728,26 +1732,13 @@ def filter_product_admin():
                 print("Invalid option, returning to category selection.")
                 clear_screen()
 
-def display_product_admin(products, selected_category):
-    for product in products:
-        if product.category == selected_category:
-            print("---------------------------------------------------------------")
-            print(f"Product ID: {product.product_id}")
-            print("---------------------------------------------------------------")
-            print(f"| Name     : {product.name}")
-            print(f"| Category : {product.category}")
-            print(f"| Price    : RM {product.price:.2f}")
-            print(f"| Stock    : {product.stock}")
-            print(f"| Status   : {product.status}")
-            print("---------------------------------------------------------------")
-
 def add_product(products, category):
     new_product = Product()
     new_product.category = category
     
     # Get product ID
     while True:
-        new_product.product_id = input("Enter ID in 3 digits: ")
+        new_product.product_id = input("\nEnter ID in 3 digits: ")
         if len(new_product.product_id) != 3:
             print("ID must be exactly 3 digits!")
             continue
@@ -1763,7 +1754,7 @@ def add_product(products, category):
     
     # Get product name
     while True:
-        new_product.name = input("Enter product name: ").strip()
+        new_product.name = input("\nEnter product name: ").strip()
         if len(new_product.name) == 0:
             print("Name cannot be empty!")
             continue
@@ -1771,7 +1762,7 @@ def add_product(products, category):
     
     # Get product price
     while True:
-        price_input = input("Enter price: ")
+        price_input = input("\nEnter price: ")
         try:
             new_product.price = float(price_input)
             if new_product.price <= 0:
@@ -1783,7 +1774,7 @@ def add_product(products, category):
     
     # Get product stock
     while True:
-        stock_input = input("Enter stock quantity: ")
+        stock_input = input("\nEnter stock quantity: ")
         try:
             new_product.stock = int(stock_input)
             if new_product.stock < 0:
@@ -1795,7 +1786,11 @@ def add_product(products, category):
     
     # Get product status
     while True:
-        new_product.status = input("Enter status [Active/Inactive]: ").capitalize()
+        status_input = input("\nEnter status [Active/Inactive]: ").strip()
+        if len(status_input) > 0:
+            status_input = status_input[0].upper() + status_input[1:].lower()
+        new_product.status = status_input
+
         if new_product.status not in ["Active", "Inactive"]:
             print("Status must be either 'Active' or 'Inactive'!")
             continue
@@ -1804,7 +1799,7 @@ def add_product(products, category):
     # Add to products list and update file
     products.append(new_product)
     if update_product_file():
-        print("\nProduct added successfully!")
+        print("\nProduct added successfully!\n")
     else:
         print("\nError saving product to file!")
     
@@ -1824,15 +1819,15 @@ def edit_product(products, category):
     product_to_edit = jump_search(products, product_id, key='product_id')
     
     if not product_to_edit:
-        print("\nNo product found with that ID in this category!")
-        input("Press [ENTER] to continue.")
+        print("No product found with that ID in this category!")
+        input("\nPress [ENTER] to continue.")
         return
     
     print(f"\nEditing product: {product_to_edit.name}")
     
     # Edit name
     while True:
-        new_name = input(f"Enter new name [{product_to_edit.name}]: ").strip()
+        new_name = input(f"\nEnter new name [{product_to_edit.name}]: ").strip()
         if len(new_name) == 0:
             new_name = product_to_edit.name
             break
@@ -1843,7 +1838,7 @@ def edit_product(products, category):
     
     # Edit price
     while True:
-        price_input = input(f"Enter new price [{product_to_edit.price}]: ").strip()
+        price_input = input(f"\nEnter new price [{product_to_edit.price}]: ").strip()
         if len(price_input) == 0:
             new_price = product_to_edit.price
             break
@@ -1858,7 +1853,7 @@ def edit_product(products, category):
     
     # Edit stock
     while True:
-        stock_input = input(f"Enter new stock [{product_to_edit.stock}]: ").strip()
+        stock_input = input(f"\nEnter new stock [{product_to_edit.stock}]: ").strip()
         if len(stock_input) == 0:
             new_stock = product_to_edit.stock
             break
@@ -1873,15 +1868,18 @@ def edit_product(products, category):
     
     # Edit status
     while True:
-        status_input = input(f"Enter new status [{product_to_edit.status}] (Active/Inactive): ").capitalize().strip()
-        if len(status_input) == 0:
-            new_status = product_to_edit.status
-            break
+        status_input = input("\nEnter status [Active/Inactive]: ").strip()
+
+        if len(status_input) > 0:
+            status_input = status_input[0].upper() + status_input[1:].lower()
+
         if status_input not in ["Active", "Inactive"]:
             print("Status must be either 'Active' or 'Inactive'!")
             continue
+
         new_status = status_input
         break
+
     
     # Update product
     product_to_edit.name = new_name
@@ -1890,7 +1888,7 @@ def edit_product(products, category):
     product_to_edit.status = new_status
     
     if update_product_file():
-        print("\nProduct updated successfully!")
+        print("\nProduct updated successfully!\n")
     else:
         print("\nError saving changes to file!")
     
@@ -1910,8 +1908,8 @@ def restock_product(products, category):
     product_to_restock = jump_search(products, product_id, key='product_id')
     
     if not product_to_restock:
-        print("\nNo product found with that ID in this category!")
-        input("Press [ENTER] to continue.")
+        print("No product found with that ID in this category!")
+        input("\nPress [ENTER] to continue.")
         return
     
     print(f"\nRestocking product: {product_to_restock.name}")
@@ -1919,7 +1917,7 @@ def restock_product(products, category):
     
     # Get additional stock
     while True:
-        add_stock_input = input("Enter quantity to add: ").strip()
+        add_stock_input = input("\nEnter quantity to add: ").strip()
         try:
             add_stock = int(add_stock_input)
             if add_stock <= 0:
@@ -1933,7 +1931,7 @@ def restock_product(products, category):
     product_to_restock.stock += add_stock
     
     if update_product_file():
-        print(f"\nProduct restocked successfully! New stock: {product_to_restock.stock}")
+        print(f"\nProduct restocked successfully! New stock: {product_to_restock.stock}\n")
     else:
         print("\nError saving changes to file!")
         product_to_restock.stock -= add_stock  # Revert if save failed
