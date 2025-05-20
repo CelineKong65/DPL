@@ -57,6 +57,15 @@ class CartItem:
         self.total = total if total else (self.price * quantity)
         self.status = status if status else (product.status if product else "")
 
+class PurchaseRecord:
+    def __init__(self, record_dict):
+        self.lines = record_dict["lines"]
+        self.datetime = record_dict["datetime"]
+        self.datetime_obj = record_dict["datetime_obj"]
+        self.total = record_dict["total"]
+        self.order_id = record_dict["order_id"]
+        self.payment_method = record_dict["payment_method"]
+
 class Feedback:
     def __init__(self, name, rating, comment, timestamp):
         self.name = name
@@ -113,7 +122,24 @@ def get_attribute(obj, attr):
     except (AttributeError, KeyError):
         return None
 
-def my_split(s, delimiter=','):
+def my_split(s, delimiter=' '):
+    result = []
+    temp = ''
+    i = 0
+    while i < len(s):
+        # Check if the substring matches the delimiter
+        if s[i:i+len(delimiter)] == delimiter:
+            result.append(temp)
+            temp = ''
+            i += len(delimiter)
+        else:
+            temp += s[i]
+            i += 1
+    result.append(temp)
+    return result
+
+
+def second_split(s, delimiter=','):
     result = []
     temp = ''
     found_delimiter = False
@@ -2853,7 +2879,7 @@ def view_purchase_history():
     try:
         clear_screen()
         print("===========================================================================")
-        print("|                          YOUR PURCHASE HISTORY                          |")
+        print("|                           YOUR PURCHASE HISTORY                         |")
         print("===========================================================================")
 
         if not os.path.exists(PURCHASE_HISTORY_FILE):
@@ -2872,18 +2898,18 @@ def view_purchase_history():
             return
 
         from datetime import datetime
-        records = content.strip().split("\n\n")
+        records = my_split(content.strip(), '\n\n')
         user_records = []
 
         for record in records:
             if not record.strip():
                 continue
 
-            lines = record.strip().split("\n")
+            lines = my_split(record.strip(), '\n')
             if len(lines) < 2:
                 continue
 
-            header = lines[0].split(',')
+            header = my_split(lines[0], ',')
             if len(header) < 5:
                 continue
 
@@ -2896,7 +2922,7 @@ def view_purchase_history():
                 purchase_time = header[3]
                 payment_method = header[4]
 
-                total_line = lines[-1].split(',')
+                total_line = my_split(lines[-1], ',')
                 total_payment = float(total_line[4]) if len(total_line) >= 5 and total_line[3] == "TOTAL" else 0.0
 
                 user_records.append({
@@ -2912,9 +2938,9 @@ def view_purchase_history():
                 print(f"Error processing record: {e}")
                 continue
 
-        if not user_records:    
+        if not user_records:
             print("|                                                                         |")
-            print("|               No purchase history found for your account.               |")
+            print("|                No purchase history found for your account.              |")
             print("|                                                                         |")
             print("===========================================================================")
             input("\nPress [ENTER] to return to main menu.")
@@ -2937,27 +2963,19 @@ def view_purchase_history():
                     main_menu()
                     return
                 elif choice in (1, 2):
-                    # Bubble sort implementation
-                    n = len(user_records)
-                    for i in range(n-1):
-                        swapped = False
-                        for j in range(0, n-i-1):
-                            if choice == 1:  # Sort by datetime
-                                compare = user_records[j]["datetime_obj"] < user_records[j+1]["datetime_obj"]
-                            else:  # Sort by total
-                                compare = user_records[j]["total"] < user_records[j+1]["total"]
-                            
-                            if compare:
-                                # Swap the elements
-                                user_records[j], user_records[j+1] = user_records[j+1], user_records[j]
-                                swapped = True
-                        if not swapped:
-                            break
+                    record_objects = [PurchaseRecord(rec) for rec in user_records]
+                    if choice == 1:
+                        bubble_sort(record_objects, key="datetime_obj", reverse=True)
+                    elif choice == 2:
+                        bubble_sort(record_objects, key="total", reverse=True)
+
+                    user_records = [record.__dict__ for record in record_objects]
                     break
                 else:
                     print("Invalid choice. Please try again.")
             except ValueError:
                 print("Invalid choice. Please try again.")
+
 
         clear_screen()
 
@@ -2970,7 +2988,7 @@ def view_purchase_history():
             print("===========================================================================")
 
             for line in record["lines"][1:-1]:
-                parts = line.split(',')
+                parts = my_split(line, ',')
                 if len(parts) < 9:
                     continue
 
@@ -2981,7 +2999,7 @@ def view_purchase_history():
                 quantity = int(parts[7])
                 total = float(parts[8])
 
-                print("---------------------------------------------------------------------------")
+                print(" -------------------------------------------------------------------------")
                 print(f"| Product ID : {product_id:<59}|")
                 print(f"| Name       : {name:<59}|")
                 print(f"| Category   : {category:<59}|")
