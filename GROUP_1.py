@@ -98,6 +98,100 @@ def custom_chr(code):
         return ascii_table[code]
     else:
         return ascii_table[code % 128]
+    
+def has_attribute(obj, attr):
+    try:
+        obj.__dict__
+    except AttributeError:
+        return False
+
+    return attr in obj.__dict__
+
+def get_attribute(obj, attr):
+    try:
+        return obj.__dict__[attr]
+    except (AttributeError, KeyError):
+        return None
+
+def my_split(s, delimiter=','):
+    result = []
+    temp = ''
+    found_delimiter = False
+    
+    for char in s:
+        if char == delimiter and not found_delimiter:
+            result.append(temp)
+            temp = ''
+            found_delimiter = True
+        else:
+            temp += char
+
+    result.append(temp)
+    
+    return result
+
+def my_enumerate(iterable, start=0):
+    result = []
+    index = start
+    for item in iterable:
+        result.append((index, item))
+        index += 1
+    return result
+
+def join_strings(separator, sequence):
+    if not sequence:
+        return ""
+    
+    result = ""
+    first_item = True
+    
+    for item in sequence:
+        if not first_item:
+            result += separator
+        result += str(item)
+        first_item = False
+    
+    return result
+
+def split_lines(text):
+    lines = []
+    current_line = []
+    
+    for char in text:
+        if char == '\n' or char == '\r':
+            lines.append(join_strings("", current_line))
+            current_line = []
+        else:
+            current_line.append(char)
+    
+    if current_line:
+        lines.append(join_strings("", current_line))
+    
+    return lines
+
+def raw_keys(dictionary):
+    keys = []
+    for key in dictionary:
+        keys.append(key)
+    return keys
+
+def raw_items(dictionary):
+    items = []
+    for key in dictionary:
+        items.append((key, dictionary[key]))
+    return items
+
+def raw_replace(s, old, new):
+    result = ""
+    i = 0
+    while i < len(s):
+        if s[i:i+len(old)] == old:
+            result += new
+            i += len(old)
+        else:
+            result += s[i]
+            i += 1
+    return result
 
 #bubble sort 在这里
 def bubble_sort(arr, key=None, reverse=False):
