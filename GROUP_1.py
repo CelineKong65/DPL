@@ -193,7 +193,43 @@ def raw_replace(s, old, new):
             i += 1
     return result
 
-#bubble sort 在这里
+def get_quoted_field(ss):
+    field = ""
+    ss = ss.strip()
+    
+    if not ss:
+        return "", ""
+
+    if len(ss) > 0 and ss[0] == '"':
+        ss = ss[1:]
+        try:
+            quote_end_index = -1
+            for i in range(len(ss)):
+                if ss[i] == '"':
+                    quote_end_index = i
+                    break
+
+            if quote_end_index == -1:
+                # No closing quote found
+                field = ss
+                ss = ""
+            else:
+                field = ss[:quote_end_index]
+                ss = ss[quote_end_index + 1:]
+
+                if len(ss) > 0 and ss[0] == ',':
+                    ss = ss[1:]
+
+        except IndexError:
+            field = ss
+            ss = ""
+    else:
+        line = my_split(ss, ',')
+        field = line[0]
+        ss = line[1] if len(line) > 1 else ""
+
+    return field.strip(), ss.strip()
+
 def bubble_sort(arr, key=None, reverse=False):
     n = len(arr)
     for i in range(n - 1):
@@ -213,8 +249,6 @@ def bubble_sort(arr, key=None, reverse=False):
         if not swapped:
             break
 
-
-#Jump Search here
 def min_val(a, b):
     return a if a < b else b
 
@@ -1174,8 +1208,6 @@ def update_admin(updated_admin, original_name):
     except Exception as e:
         print("Error:", e)
 
-
-#------------------------------------------------------------admin profile function------------------------------------------------
 def admin_profile():
     global logged_in_admin
 
@@ -1911,29 +1943,6 @@ def restock_product(products, category):
 
 #------------------------------------------------------------Member browse product function------------------------------------------------
 #---------------------------------------I only add this line for easy visual, will be removed before submitted-----------------------------
-def get_quoted_field(ss):
-    field = ""
-    ss = ss.strip()
-    if not ss:
-        return "", ""
-
-    if ss.startswith('"'):
-        ss = ss[1:]
-        try:
-            quote_end_index = ss.index('"')
-            field = ss[:quote_end_index]
-            ss = ss[quote_end_index + 1:]
-            if ss.startswith(','):
-                ss = ss[1:]
-        except ValueError:
-            field = ss
-            ss = ""
-    else:
-        split = ss.split(',', 1)
-        field = split[0]
-        ss = split[1] if len(split) > 1 else ""
-
-    return field.strip(), ss.strip()
 
 def display_product(product):
     if product.status == "Active":
