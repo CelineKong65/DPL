@@ -1944,18 +1944,18 @@ def restock_product(products, category):
 
 def display_product(product):
     if product.status == "Active":
-        print("---------------------------------------------------------------")
-        print(f"Product ID: {product.product_id}")
-        print("---------------------------------------------------------------")
-        print(f"| Name     : {product.name}")
-        print(f"| Category : {product.category}")
-        print(f"| Price    : RM {product.price:.2f}")
+        print("---------------------------------------------------------------------------")
+        print(f"| Product ID: {product.product_id:<60}|")
+        print("---------------------------------------------------------------------------")
+        print(f"| Name      : {product.name:<60}|")
+        print(f"| Category  : {product.category:<60}|")
+        print(f"| Price     : RM {product.price:<57.2f}|")
 
         if product.stock <= 0:
-            print("| WARNING  : SORRY! THIS PRODUCT IS CURRENTLY OUT OF STOCK!")
+            print("| WARNING   : SORRY! THIS PRODUCT IS CURRENTLY OUT OF STOCK!              |")
         else:
-            print(f"| Stock    : {product.stock}")
-        print("---------------------------------------------------------------")
+            print(f"| Stock     : {product.stock:<60}|")
+        print("---------------------------------------------------------------------------")
 
 def load_products():
     global products
