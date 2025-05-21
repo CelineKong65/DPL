@@ -67,12 +67,14 @@ class PurchaseRecord:
         self.payment_method = record_dict["payment_method"]
 
 class Feedback:
-    def __init__(self, name, rating, comment, timestamp):
-        self.name = name
-        self.rating = int(rating)
-        self.comment = comment
-        self.timestamp = timestamp
-        self.datetime = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
+    def create_feedback(name, rating, comment, timestamp):
+        obj = Feedback()
+        obj.name = name
+        obj.rating = int(rating)
+        obj.comment = comment
+        obj.timestamp = timestamp
+        obj.datetime = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
+        return obj
 
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -233,34 +235,16 @@ def get_attr(obj, key):
     if key == "product_id":
         return obj.product_id
     elif key == "rating":
-        return obj.rating if hasattr(obj, "rating") else 0.0
+        return obj.rating
     elif key == "datetime":
-        return obj.datetime if hasattr(obj, "datetime") else ""
+        return obj.datetime
     else:
         return None
 
-def has_attr(obj, key):
-    if key == "rating":
-        try:
-            _ = obj.rating
-            return True
-        except AttributeError:
-            return False
-    elif key == "datetime":
-        try:
-            _ = obj.datetime
-            return True
-        except AttributeError:
-            return False
-    else:
-        return False
-
 def bubble_sort(arr, key=None, reverse=False):
-    # Manual length calculation
     n = 0
     for item in arr:
         n += 1
-
     i = 0
     while i < n - 1:
         swapped = False
@@ -272,15 +256,11 @@ def bubble_sort(arr, key=None, reverse=False):
             else:
                 a = arr[j]
                 b = arr[j + 1]
-
-            # Convert to comparable types if needed (e.g., rating to float, timestamp to datetime)
             if key == "rating":
                 a = float(a)
                 b = float(b)
             elif key == "datetime":
-                # assume timestamp is a string and already in comparable format
                 pass
-
             if (a > b and not reverse) or (a < b and reverse):
                 arr[j], arr[j + 1] = arr[j + 1], arr[j]
                 swapped = True
@@ -293,23 +273,18 @@ def jump_search(arr, target, key=None):
     n = len(arr)
     if n == 0:
         return None
-
     step = 1
     while step * step < n:
         step += 1
-
     prev = 0
     while True:
         index = min_val(step, n) - 1
-
         if key:
             current_val = get_attr(arr[index], key)
         else:
             current_val = arr[index]
-
         if current_val is None:
             return None
-
         if current_val < target:
             prev = step
             step += int(n ** 0.5)
@@ -317,9 +292,7 @@ def jump_search(arr, target, key=None):
                 return None
         else:
             break
-
     limit = min_val(step, n)
-
     if key:
         while prev < limit and get_attr(arr[prev], key) < target:
             prev += 1
@@ -334,7 +307,6 @@ def jump_search(arr, target, key=None):
             return None
         if prev < n and arr[prev] == target:
             return arr[prev]
-
     return None
 
 def load_members():
@@ -1365,7 +1337,7 @@ def sort_feedback_rating():
                     parts = my_split(line, ',')
                     if len(parts) == 4:
                         name, rating, comment, timestamp = parts
-                        feedback_rating.append(Feedback(name, rating, comment, timestamp))
+                        feedback_rating.append(Feedback.create_feedback(name, rating, comment, timestamp))
         if not feedback_rating:
             print("============================================================================")
             print("|                                                                         |")
@@ -1411,7 +1383,7 @@ def sort_feedback_rating():
         for record in feedback_rating:
             print("============================================================================")
             print(f"| Date & Time  : {record.timestamp:<58}|")
-            print("===========================================================================")
+            print("============================================================================")
             print(f"| Name         : {record.name:<58}|")
             print(f"| Rating       : {record.rating:<58}|")
             print(f"| Comment      : {record.comment:<58}|")
