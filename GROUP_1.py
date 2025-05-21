@@ -16,7 +16,7 @@ logged_in_member = ""
 logged_in_admin = ""
 
 class Member:
-    def __init__(self, full_name="", member_id="", email="", password="", age="", gender="" , contact="", status="Active"):
+    def set_customer(self, member_id, full_name, email, password, age, gender, contact, status="Active"):
         self.member_id = member_id
         self.full_name = full_name
         self.email = email
@@ -25,22 +25,19 @@ class Member:
         self.gender = gender
         self.contact = contact
         self.status = status
-    def __str__(self):
-        return f"{self.member_id}\n{self.full_name}\n{self.email}\n{self.password}\n{self.age}\n{self.gender}\n{self.contact}\n{self.status}"
     
 class Admin:
-    def __init__(self, name="", password="", contact="", position="admin", status="Active"):
+    def set_admin(self, name, password, contact, position="admin", status="Active"):
         allowed_positions = ["admin", "superadmin"]
         if position not in allowed_positions:
             raise ValueError(f"Invalid position: {position}. Must be 'admin' or 'superadmin'.")
+        
         self.name = name
         self.password = password
         self.contact = contact
         self.position = position
         self.status = status
-    def __str__(self):
-        return f"{self.name}\n{self.password}\n{self.contact}\n{self.position}\n{self.status}"
-    
+
 class Product:
     def __init__(self, product_id="", name="", category="", price=0.0, stock=0, status=""):
         self.product_id = product_id
@@ -316,7 +313,8 @@ def load_members():
                 if line != "":
                     data_lines.append(line)
                 if len(data_lines) == 8:
-                    member = Member(
+                    member = Member()
+                    member.set_customer(
                         member_id=data_lines[0],
                         full_name=data_lines[1],
                         email=data_lines[2],
@@ -330,29 +328,6 @@ def load_members():
                     data_lines = []
     except FileNotFoundError:
         open(MEMBERS_FILE, "w", encoding='utf-8').close()
-
-def load_admins():
-    global admins
-    admins = []
-    try:
-        with open(ADMINS_FILE, "r", encoding="utf-8") as file:
-            lines = [line.strip() for line in file if line.strip()]
-            i = 0
-            while i < len(lines):
-                if i + 4 < len(lines):
-                    admin = Admin(
-                        name=lines[i],
-                        password=lines[i+1],
-                        contact=lines[i+2],
-                        position=lines[i+3],
-                        status=lines[i+4]
-                    )
-                    admins.append(admin)
-                    i += 5
-                else:
-                    i += 1
-    except FileNotFoundError:
-        open(ADMINS_FILE, "w", encoding="utf-8").close()
 
 def get_next_member_id():
     try:
@@ -372,7 +347,6 @@ def get_next_member_id():
         with open(MEMBERS_ID_FILE, "w", encoding='utf-8') as file:
             file.write("U0001\n")
         return "U0001"
-    
 def save_member(member):
     with open(MEMBERS_FILE, "a+", encoding='utf-8') as file:
         file.seek(0)
@@ -571,7 +545,8 @@ def signup():
             print("This phone number is already registered! Please use a different one.")
             continue 
         break
-    new_member = Member(
+    new_member = Member()
+    new_member.set_customer(
         full_name=full_name,
         member_id=member_id,
         email=email,
@@ -625,7 +600,8 @@ def login():
                 while attempts < 3:
                     if password == stored_password:
                         print("\nLogged in Successfully!")
-                        logged_in_member = Member(
+                        logged_in_member = Member()
+                        logged_in_member.set_customer(
                             full_name=lines[i + 1],
                             member_id=lines[i],
                             email=lines[i + 2],
@@ -967,6 +943,30 @@ def edit_member_profile():
             input("\nInvalid choice. Press [ENTER] to try again.")
             clear_screen()
 
+def load_admins():
+    global admins
+    admins = []
+    try:
+        with open(ADMINS_FILE, "r", encoding="utf-8") as file:
+            lines = [line.strip() for line in file if line.strip()]
+            i = 0
+            while i < len(lines):
+                if i + 4 < len(lines):
+                    admin = Admin()
+                    admin.set_admin(
+                        name=lines[i],
+                        password=lines[i+1],
+                        contact=lines[i+2],
+                        position=lines[i+3],
+                        status=lines[i+4]
+                    )
+                    admins.append(admin)
+                    i += 5
+                else:
+                    i += 1
+    except FileNotFoundError:
+        open(ADMINS_FILE, "w", encoding="utf-8").close()
+
 def admin_login():
     global logged_in_admin
     name = input("\nEnter your name, [R] to return: ").strip()
@@ -994,7 +994,8 @@ def admin_login():
                     if password == stored_password:
                         print("\nLogged in Successfully!")
                         print(f"Welcome {stored_position}!")
-                        logged_in_admin = Admin(
+                        logged_in_admin = Admin()
+                        logged_in_admin.set_admin(
                             name=lines[i],
                             password=lines[i + 1],
                             contact=lines[i + 2],
@@ -3210,7 +3211,8 @@ def view_member_list(status_filter):
                     lines.append(line)
             for i in range(0, len(lines), 8):
                 if i + 7 < len(lines):
-                    member = Member(
+                    logged_in_member = Member()
+                    logged_in_member.set_customer(
                         member_id=lines[i],
                         full_name=lines[i+1],
                         email=lines[i+2],
@@ -3220,7 +3222,7 @@ def view_member_list(status_filter):
                         contact=lines[i+6],
                         status=lines[i+7]
                     )
-                    members.append(member)
+                    members.append(logged_in_member)
         filtered_members = []
         for m in members:
             if m.status == status_filter:
@@ -3402,7 +3404,8 @@ def view_admin_list(status_filter):
             for i in range(0, len(lines), 5):
                 if i + 4 < len(lines):
                     try:
-                        admin = Admin(
+                        admin = Admin()
+                        admin.set_admin(
                             name=lines[i],
                             password=lines[i+1],
                             contact=lines[i+2],
@@ -3556,7 +3559,7 @@ def change_admin_status():
         print("| Name                  | Position              | Status                  |")
         print("===========================================================================")
         with open(ADMINS_FILE, 'r', encoding='utf-8') as file:
-            content = file.read()
+            content = file.read()   
         admins_data = []
         current_admin = []
         blank_line_count = 0
@@ -3601,7 +3604,7 @@ def change_admin_status():
                     break
             if not found:
                 print(f"\nError: Admin '{name}' not found. Please try again.")
-                continue
+                continue    
             break
         print("===========================================================================")
         updated_admins_data = []
@@ -3617,7 +3620,7 @@ def change_admin_status():
                 updated_admins_data.append(admin_data)
         with open(ADMINS_FILE, 'w', encoding='utf-8') as file:
             file.write(join_strings("\n\n", updated_admins_data))
-        input("Press [ENTER] to continue. ")
+        input("Press [ENTER] to continue. ") 
     except FileNotFoundError:
         print("Admin file not found.")
         input("Press [ENTER] to continue.")   
