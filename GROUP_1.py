@@ -2007,7 +2007,7 @@ def save_cart(cart):
     cart_file = get_cart_filename(logged_in_member.member_id)
     try:
         with open(cart_file, 'w', encoding='utf-8') as file:
-            for index, item in enumerate(cart, start=1):
+            for index, item in my_enumerate(cart, start=1):
                 pid = item.product_id if item.product_id else (item.product.product_id if item.product else "")
                 name = item.name if item.name else (item.product.name if item.product else "")
                 price = item.price if item.price is not None else (item.product.price if item.product else 0.0)
