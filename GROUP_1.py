@@ -27,7 +27,6 @@ class Admin:
         allowed_positions = ["admin", "superadmin"]
         if position not in allowed_positions:
             raise ValueError(f"Invalid position: {position}. Must be 'admin' or 'superadmin'.")
-        
         self.name = name
         self.password = password
         self.contact = contact
@@ -1294,7 +1293,7 @@ def proceed_to_payment(products, cart):
                 print("Invalid input.")
                 proceed = input("Enter 0 to back to product list, 1 to continue proceed to payment: ").strip()
             if proceed == '0':
-                filter_products(products, cart)
+                filter_products()
                 return
         if actual_total >= 120: 
             discount = 0.05
