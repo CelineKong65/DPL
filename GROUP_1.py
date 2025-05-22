@@ -3318,68 +3318,31 @@ def view_sales_report():
 def update_admin(updated_admin, original_name):
     try:
         with open(ADMINS_FILE, "r", encoding="utf-8") as file:
-            lines = []
-            for line in file:
-                is_empty = True
-                for ch in line:
-                    if ch != '\n' and ch != '\r':
-                        is_empty = False
-                        break
-                if not is_empty:
-                    clean_line = ""
-                    for ch in line:
-                        if ch != '\n' and ch != '\r':
-                            clean_line += ch
-                    lines.append(clean_line)
+            content = file.read().strip()
+        admins = my_split(content, "\n\n") if content else []
         updated_admins = []
-        i = 0
-        while i < len(lines):
-            name = lines[i]
-            password = lines[i + 1]
-            contact = lines[i + 2]
-            position = lines[i + 3]
-            status = lines[i + 4]
-            same = True
-            if len(name) == len(original_name):
-                j = 0
-                while j < len(name):
-                    a = name[j]
-                    b = original_name[j]
-                    if 'A' <= a <= 'Z':
-                        a = custom_chr(ord(a) + 32)
-                    if 'A' <= b <= 'Z':
-                        b = custom_chr(ord(b) + 32)
-                    if a != b:
-                        same = False
-                        break
-                    j += 1
-            else:
-                same = False
-            if same:
-                updated_admins.append([
+        for admin_data in admins:
+            fields = my_split(admin_data, "\n")
+            if not fields:
+                continue 
+
+            if fields[0].lower() == original_name.lower():
+                updated_admins.append(join_strings("\n", [
                     updated_admin.name,
                     updated_admin.password,
                     updated_admin.contact,
                     updated_admin.position,
                     updated_admin.status
-                ])
+                ]))
             else:
-                updated_admins.append([name, password, contact, position, status])
-            i += 5
+                updated_admins.append(admin_data)
         with open(ADMINS_FILE, "w", encoding="utf-8") as file:
-            idx = 0
-            while idx < len(updated_admins):
-                admin = updated_admins[idx]
-                j = 0
-                while j < 5:
-                    file.write(admin[j])
-                    file.write("\n")
-                    j += 1
-                if idx != len(updated_admins) - 1:
-                    file.write("\n")
-                idx += 1
+            file.write(join_strings("\n\n", updated_admins))
+
+    except FileNotFoundError:
+        print("Admin file not found.")
     except Exception as e:
-        print("Error:", e)
+        print(f"An error occurred while updating admin: {e}")
 def admin_profile():
     global logged_in_admin
     clear_screen()
