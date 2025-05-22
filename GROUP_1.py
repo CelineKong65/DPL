@@ -1111,7 +1111,7 @@ def edit_cart(cart):
         valid_numbers = [i for i, _ in editable_items]
         if item_num not in valid_numbers:
             if len(valid_numbers) == 1:
-                print("Invalid item number. Please enter 1")
+                print(f"Invalid item number. Please enter {valid_numbers[0]}")
             else:
                 print(f"Invalid item number. Please enter between {valid_numbers[0]} and {valid_numbers[-1]}")
             continue
@@ -1146,7 +1146,10 @@ def edit_cart(cart):
             new_qty = int(new_qty_input)
             if new_qty == 0:
                 product.stock += selected_item.quantity
-                cart.pop(original_index)
+                deleted_item = selected_item
+                new_cart = cart[:original_index] + cart[original_index + 1:]
+                original_cart = cart[:]
+                cart[:] = new_cart
                 if save_cart(cart) and update_product_file():
                     print("Item removed from cart successfully!\n")
                 else:
