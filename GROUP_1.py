@@ -1146,9 +1146,7 @@ def edit_cart(cart):
             new_qty = int(new_qty_input)
             if new_qty == 0:
                 product.stock += selected_item.quantity
-                deleted_item = selected_item
                 new_cart = cart[:original_index] + cart[original_index + 1:]
-                original_cart = cart[:]
                 cart[:] = new_cart
                 if save_cart(cart) and update_product_file():
                     print("Item removed from cart successfully!\n")
@@ -1250,7 +1248,6 @@ def proceed_to_payment(products, cart):
             else:
                 print("Invalid choice. Please try again.")
         return
-    total_payment = 0.00
     print("===========================================================================")
     print("|                                 RECEIPT                                 |")
     print("===========================================================================")
