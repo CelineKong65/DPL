@@ -672,27 +672,22 @@ def load_products():
                 line = line.strip()
                 if not line:
                     continue
-
                 ss = line
                 product = Product()
-
                 product.product_id, ss = get_quoted_field(ss)
                 product.name, ss = get_quoted_field(ss)
                 product.category, ss = get_quoted_field(ss)
                 price_str, ss = get_quoted_field(ss)
                 stock_str, ss = get_quoted_field(ss)
                 product.status, ss = get_quoted_field(ss)
-
                 try:
                     product.price = float(price_str) if price_str else 0.0
                 except ValueError:
                     product.price = 0.0
-
                 try:
                     product.stock = int(stock_str) if stock_str else 0
                 except ValueError:
                     product.stock = 0
-
                 products.append(product)
         bubble_sort(products, key='product_id')
         return True
@@ -726,7 +721,6 @@ def filter_products():
             print(f"| {key}. {value:<69}|")
         print(f"| {'9. Back to Main Menu':<72}|")
         print("===========================================================================")
-
         choice = input("Enter your choice (1-9): ")
         if choice == '9':
             clear_screen()
@@ -818,7 +812,6 @@ def update_product_file():
                 price = str(product.price)
                 stock = str(product.stock)
                 status = f'"{product.status}"' if ',' in product.status else product.status
-
                 file.write(f"{pid},{name},{category},{price},{stock},{status}\n")
         return True
     except IOError as e:
@@ -1730,7 +1723,6 @@ def edit_member_profile():
                         break
                     if char != ' ':
                         letter_count += 1
-
                 if not is_valid or letter_count < 2:
                     print("Invalid name. Must contain only letters and spaces, with at least 2 letters.")
                     continue
@@ -2118,7 +2110,6 @@ def filter_product_admin():
             print(f"| [{key}] {value:<68}|")
         print(f"| {'[9] Back to Main Menu':<72}|")
         print("===========================================================================")
-
         choice = input("Enter your choice (1-9): ")
         if choice == '9':
             clear_screen()
@@ -2133,7 +2124,6 @@ def filter_product_admin():
             clear_screen()
             print(f"Products in Category: {selected_category}                ")
             load_products()
-
             display_product_admin(products, selected_category)
             print("\n---------------------------------------------------------------------------")
             print(" ________________________________________")
@@ -2521,10 +2511,8 @@ def manage_admin():
             print("| [3] Add New Admin                                                       |")
             print("| [4] Change Admin Status                                                 |")
             print("| [5] Return to Admin Menu                                                |")
-            max_choice = '5'
         else: 
             print("| [3] Return to Admin Menu                                                |")
-            max_choice = '3'
         print("===========================================================================")
         choice = input("Enter yout choice: ")
         if choice == '1':
@@ -3076,12 +3064,10 @@ def view_order_history():
         order_ids = []
         with open(PURCHASE_HISTORY_FILE, "r") as file:
             content = file.read()
-            records = my_split(content.strip(), delimiter = "\n\n")
-            
+            records = my_split(content.strip(), delimiter = "\n\n")           
             for record in records:
                 if not record.strip():
-                    continue
-                
+                    continue               
                 lines = my_split(record, '\n')
                 if len(lines) >= 1:
                     header = my_split(lines[0], ',')
