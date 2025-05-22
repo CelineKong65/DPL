@@ -2284,7 +2284,6 @@ def restock_product(products, category):
     product_id = input("\nEnter the Product ID to restock: ")
     product_to_restock = None
     product_to_restock = jump_search(products, product_id, key='product_id')
-    product_to_edit = jump_search(products, product_id, key='product_id')
     if not product_to_restock or product_to_restock.category != category:
         print("No product found with that ID in this category!")
         input("\nPress [ENTER] to continue.")
