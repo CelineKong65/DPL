@@ -217,6 +217,8 @@ def get_attr(obj, key, default=None):
         return obj.datetime_obj
     elif key == "total":
         return obj.total
+    elif key == "member_id":
+        return obj.member_id
     else:
         return default
 def bubble_sort(arr, key=None, reverse=False):
@@ -2383,7 +2385,7 @@ def view_member_list(status_filter):
             if search_choice == 'N':
                 return
             if search_choice == 'Y':
-                bubble_sort(filtered_members, key='member_id')
+                bubble_sort(filtered_members, key='member_id', reverse=False)
                 while True:
                     search_id = input("\nEnter Member ID to search (or 'C' to cancel): ").strip().upper()
                     if search_id == 'C':
