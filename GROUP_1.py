@@ -2590,7 +2590,7 @@ def add_new_admin():
     print("===========================================================================")
     print("|                            ADD NEW ADMIN                                |")
     print("===========================================================================")
-    print("| Requirment:                                                             |")
+    print("| Requirement:                                                            |")
     print("| -> Name cannot be same                                                  |")
     print("| -> Password need at least 8 chars                                       |")
     print("| -> Password need one uppercase, lowercase, number                       |")
