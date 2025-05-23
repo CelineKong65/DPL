@@ -41,3 +41,11 @@ U0002,Kong lee ching,ORD0015,201,Danish Pastry,Pastries,4.00,4,16.00
 U0002,Kong lee ching,ORD0015,304,Tiramisu,Cakes,17.00,1,17.00
 U0002,Kong lee ching,ORD0015,TOTAL,348.18
 
+U0007,Xuanting,ORD0016,2025-05-23 14:47:40,Cash
+U0007,Xuanting,ORD0016,401,Chocolate Donut,Donuts,2.80,50,140.00
+U0007,Xuanting,ORD0016,TOTAL,133.00
+
+U0007,Xuanting,ORD0017,2025-05-23 14:50:08,Debit Card
+U0007,Xuanting,ORD0017,702,Pumpkin Pie,Pies & Tarts,6.50,60,390.00
+U0007,Xuanting,ORD0017,TOTAL,370.50
+
