@@ -2849,7 +2849,7 @@ def sort_feedback_rating():
             clear_screen()
             return view_feedback_rating()
         else:
-            print("Invalid rating. Please enter a number between 1 and 5.")
+            print("Invalid option. Please enter a number between 1 and 5.")
             return sort_feedback_rating()
         for record in feedback_rating:
             print("============================================================================")
