@@ -201,6 +201,8 @@ def get_attr(obj, key, default=None):
         return obj.product_id
     elif key == "rating":
          return obj.rating
+    elif key == "member_id":
+         return obj.member_id
     elif key == "datetime":
         return obj.datetime
     elif key == "name":
